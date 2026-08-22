@@ -1,180 +1,187 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<title>NEW</title>
-
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-	<!-- Google Fonts -->
-	<link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans&display=swap" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
-
-	<!-- Font Awesome -->
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
-	<!-- Bootstrap -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-
-	<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
-
-</head>
-
-<body id="content">
-	<div class="results">
-	    <center>
-	      <h2 id="name" class="text-uppercase">{{title}}</h2>
-	    </center>
-	</div>
-	<br>
-
-<div id="mycontent">
-    <div id="mcontent">
-      <div class="poster-lg">
-        <img class="poster" style="border-radius: 40px;margin-left: 90px;" height="400" width="250" src={{poster}}>
-      </div>
-      <div class="poster-sm text-center">
-        <img class="poster" style="border-radius: 40px;margin-bottom: 5%;" height="400" width="250" src={{poster}}>
-      </div>
-      <div id="details">
-        <br/>
-        <h6 id="title" style="color:white;">TITLE: &nbsp;{{title}}</h6>
-        <h6 id="overview" style="color:white;max-width: 85%">OVERVIEW: <br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{overview}}</h6>
-        <h6 id="vote_average" style="color:white;">RATING: &nbsp;{{vote_average}}/10 ({{vote_count}} votes)</h6>
-        <h6 id="genres" style="color:white;">GENRE: &nbsp;{{genres}}</h6>
-        <h6 id="date" style="color:white;">RELEASE DATE: &nbsp;{{release_date}}</h6>
-        <h6 id="runtime" style="color:white;">RUNTIME: &nbsp;{{runtime}}</h6>
-        <h6 id="status" style="color:white;">STATUS: &nbsp;{{status}}</h6>
-      </div>
-    </div>
-</div>
-<br/>
-	
 {% for name, details in cast_details.items() if not cast_details.hidden %}
-  <div class="modal fade" id="{{details[0]}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel3" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-      <div class="modal-content">
-        <div class="modal-header" style="background-color: #e50914;color: white;">
-          <h5 class="modal-title" id="exampleModalLabel3">{{name}}</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true" style="color: white">&times;</span>
-          </button>
+<div class="modal fade" id="cast-{{details[0]}}" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ name }}</h5>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body" style="display:flex;gap:20px;align-items:flex-start;">
+        <img src="{{ details[1] }}" alt="{{ name }}"
+             style="width:160px;height:220px;object-fit:cover;border-radius:10px;flex-shrink:0;"
+             onerror="this.src='https://via.placeholder.com/160x220/120924/8c52ff?text=👤'">
+        <div>
+          <p style="margin-bottom:6px;"><strong style="color:#b388ff">Birthday:</strong>
+            <span style="color:#9e95b0">{{ details[2] }}</span></p>
+          <p style="margin-bottom:6px;"><strong style="color:#b388ff">Place of Birth:</strong>
+            <span style="color:#9e95b0">{{ details[3] }}</span></p>
+          <p style="margin-top:10px;margin-bottom:4px;"><strong style="color:#b388ff">Biography:</strong></p>
+          <p style="color:#9e95b0;font-size:0.85rem;line-height:1.65;
+                    max-height:200px;overflow-y:auto;padding-right:4px;">{{ details[4] }}</p>
         </div>
-
-        <div class="modal-body">
-          <img class="profile-pic" src="{{details[1]}}" alt="{{name}} - profile" style="width: 250px;height:400px;border-radius: 10px;" />
-          <div style="margin-left: 20px">
-            <p><strong>Birthday:</strong> {{details[2]}} </p>
-            <p><strong>Place of Birth:</strong> {{details[3]}} </p>
-            <p> 
-              <p><strong>Biography:</strong><p>
-              {{details[4]}}
-            </p>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
-  {% endfor %}
-  
-  {% if casts|length > 1 %}
-  <div class="movie" style="color: #E8E8E8;">
-    	<center>
-		<h3>TOP CAST</h3>
-		<h5>(Click on the cast to know more)</h5>
-	</center>
+</div>
+{% endfor %}
+
+<!-- ── Hero: Poster + Movie Details + Trailer Button ───────────────── -->
+<div class="rec-hero">
+  <div class="rec-poster-wrap">
+    <img class="rec-poster" src="{{ poster }}" alt="{{ title }} poster"
+         onerror="this.src='https://via.placeholder.com/200x300/120924/8c52ff?text=🎬'">
   </div>
 
-  <div class="movie-content">
-        {% for name, details in casts.items() if not casts.hidden %}
-          <div class="castcard card" style="width: 15rem;" title="Click to know more about {{name}}" data-toggle="modal" data-target="#{{details[0]}}">
-            <div class="imghvr">
-              <img class="card-img-top cast-img" id="{{details[0]}}" height="360" width="240" alt="{{name}} - profile" src="{{details[2]}}">
-              <figcaption class="fig">
-                <button class="card-btn btn btn-danger"> Know More </button>
-              </figcaption>
-            </div>
-            <div class="card-body">
-              <h5 class="card-title">{{name|title}}</h5>
-              <h5 class="card-title"><span style="color:#756969;font-size: 20px;">Character: {{details[1]|title}}</span></h5>
-            </div>
-          </div>
+  <div class="rec-details">
+    <h1 class="rec-title">{{ title }}</h1>
+
+    {% if genres %}
+    <div class="rec-tags">
+      {% for g in genres.split(', ') %}
+      <span class="tag">{{ g }}</span>
       {% endfor %}
     </div>
-{% endif %}
-
-  <center>
-    {% if reviews %}
-    <h2 style="color:white">USER REVIEWS</h2>
-     <div class="col-md-12" style="margin: 0 auto; margin-top:25px;">
-        <table class="table table-bordered" bordercolor="white" style="color:white">
-            <thead>
-                <tr>
-                    <th class="text-center" scope="col" style="width: 75%">Comments</th>
-                    <th class="text-center" scope="col">Sentiments</th>
-                </tr>
-            </thead>
-    
-            <tbody>
-		      {% for review, status in reviews.items() if not reviews.hidden %}
-		      <tr style="background-color:#e5091485;">
-              	  <td>{{review}}</td>
-	              <td><center>
-	                  {{status}} : 
-	                  {% if status =='Good' %}
-	                    &#128515;
-	                  {% else %}
-	                    &#128534;
-	                  {% endif %}
-	                </center>
-	              </td>
-          		</tr>
-      			{% endfor %}
-    		</tbody>
- 		 </table>
-    </div>
-    {% else %}
-    <div style="color:white;">
-      <h1 style="color:white"> This movie is not released yet. Stay tuned! </h1>
-    </div>
-    {% endif %}
-  </center>
-
-      {% if movie_cards|length > 1 %}
-
-
-      <div class="movie" style="color: #E8E8E8;">
-      <center><h3>RECOMMENDED MOVIES FOR YOU</h3><h5>(Click any of the movies to get recommendation)</h5></center>
-    </div>
-
-    <div class="movie-content">
-      {% for poster, title in movie_cards.items() if not movie_cards.hidden %}
-        <div class="card" style="width: 15rem;" title="{{title}}" onclick="recommendcard(this)">
-          <div class="imghvr">
-            <img class="card-img-top" height="360" width="240" alt="{{title}} - poster" src={{poster}}>
-            <figcaption class="fig">
-              <button class="card-btn btn btn-danger"> Click Me </button>
-            </figcaption>
-           </div>
-          <div class="card-body">
-            <h5 class="card-title">{{title|capitalize}}</h5>
-          </div>
-        </div>
-    {% endfor %}
-    </div>
-
     {% endif %}
 
-    
+    <div class="rec-meta">
+      <div class="rating-badge">
+        <i class="fa fa-star"></i> {{ vote_average }}/10
+        <span style="font-size:0.72rem;font-weight:400;color:#9e95b0">&nbsp;({{ vote_count }} votes)</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Release</span>
+        <span class="meta-value">{{ release_date }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Runtime</span>
+        <span class="meta-value">{{ runtime }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Status</span>
+        <span class="meta-value">
+          {% if status == 'Released' %}<span style="color:#4ade80">● Released</span>
+          {% else %}<span style="color:#f59e0b">● {{ status }}</span>{% endif %}
+        </span>
+      </div>
+    </div>
+
+    <p class="rec-overview">{{ overview }}</p>
+
+    {% if nlp_themes %}
+    <div style="margin-top:14px;">
+      <span style="font-size:0.72rem;color:var(--purple-300);font-weight:700;letter-spacing:1px;display:block;margin-bottom:6px;">
+        <i class="fa fa-brain"></i> AI SEMANTIC NLP THEMES:
+      </span>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        {% for theme in nlp_themes %}
+        <span class="tag" style="background:rgba(217,70,239,0.12);border-color:rgba(217,70,239,0.3);color:var(--accent);">{{ theme }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Interactive Trailer Button -->
+    <div style="margin-top:20px;">
+      <button class="search-btn" style="position:static;transform:none;" onclick="watchTrailer('{{ title|escape }}')">
+        <i class="fa fa-play"></i> &nbsp;Watch Trailer on YouTube
+      </button>
     </div>
   </div>
-  
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script type="text/javascript" src="{{url_for('static', filename='recommend.js')}}"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-</body>
-</html>
+</div>
+
+<!-- ── Top Cast ─────────────────────────────────────────────────────── -->
+{% if casts|length > 0 %}
+<div class="cast-section">
+  <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;">
+    <h2 class="section-title"><span class="dot"></span> Top Cast</h2>
+    <span style="color:#9e95b0;font-size:0.78rem;">Click for biography</span>
+  </div>
+  <div class="cast-row">
+    {% for name, details in casts.items() if not casts.hidden %}
+    <div class="cast-card" data-toggle="modal" data-target="#cast-{{details[0]}}">
+      <img src="{{ details[2] }}" alt="{{ name }}"
+           onerror="this.src='https://via.placeholder.com/120x160/120924/8c52ff?text=👤'">
+      <div class="cast-name">{{ name|title }}</div>
+      <div class="cast-char">{{ details[1]|title }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ── User Reviews + AI Sentiment ──────────────────────────────────── -->
+<div class="reviews-section">
+  <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <h2 class="section-title"><span class="dot"></span> AI Sentiment Analysis &amp; User Reviews</h2>
+    <span class="hero-badge" style="margin:0;padding:4px 12px;font-size:0.75rem;"><i class="fa fa-robot"></i> NLP Classifier Active</span>
+  </div>
+
+  {% if reviews %}
+  {% set total = reviews|length %}
+  {% set pos = namespace(count=0) %}
+  {% for r, s in reviews.items() %}
+    {% if s == 'Good' %}
+      {% set pos.count = pos.count + 1 %}
+    {% endif %}
+  {% endfor %}
+  {% set pct = (pos.count / total * 100)|round|int if total > 0 else 80 %}
+
+  <!-- Sentiment Summary Gauge Bar -->
+  <div class="sentiment-summary-bar">
+    <div class="sentiment-summary-text">
+      <span style="color:#34d399;font-weight:700;"><i class="fa fa-smile"></i> {{ pct }}% POSITIVE Audience Rating</span>
+      <span style="color:#f87171;font-weight:700;">{{ 100 - pct }}% NEGATIVE</span>
+    </div>
+    <div class="sentiment-progress-track">
+      <div class="sentiment-progress-fill" style="width: {{ pct }}%;"></div>
+    </div>
+  </div>
+
+  <!-- Clean Vertical Comment Section List -->
+  <div class="comment-list">
+    {% for review, status in reviews.items() if not reviews.hidden %}
+    <div class="comment-item">
+      <div class="comment-avatar">
+        <i class="fa fa-user-circle"></i>
+      </div>
+      <div class="comment-body-wrap">
+        <div class="comment-meta">
+          <span class="comment-author">Audience Review</span>
+          {% if status == 'Good' %}
+          <span class="verdict-pill verdict-positive">POSITIVE</span>
+          {% else %}
+          <span class="verdict-pill verdict-negative">NEGATIVE</span>
+          {% endif %}
+        </div>
+        <p class="comment-text">{{ review }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- ── Recommended Movies ────────────────────────────────────────────── -->
+{% if movie_cards|length > 0 %}
+<div class="section">
+  <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;">
+    <h2 class="section-title"><span class="dot"></span> Recommended For You</h2>
+    <span style="color:#9e95b0;font-size:0.78rem;">Click any movie to explore</span>
+  </div>
+  <div class="movie-row">
+    {% for poster_url, rec_title in movie_cards.items() %}
+    <div class="movie-card" title="{{ rec_title }}" onclick="recommendcard(this)">
+      <img src="{{ poster_url }}" alt="{{ rec_title }}"
+           onerror="this.src='https://via.placeholder.com/160x240/120924/8c52ff?text=🎬'">
+      <div class="movie-card-overlay">
+        <button class="play-btn"><i class="fa fa-play"></i></button>
+        <div class="card-title">{{ rec_title|capitalize }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}

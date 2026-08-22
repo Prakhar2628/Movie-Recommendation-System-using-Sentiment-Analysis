@@ -1,17 +1,23 @@
-Flask==2.3.2
-gunicorn==19.9.0
-Jinja2==2.11.3
-MarkupSafe==1.1.1
-Werkzeug==0.15.5
-numpy>=1.9.2
-scipy>=0.15.1
-nltk==3.5
-scikit-learn>=0.18
-pandas>=0.19
-beautifulsoup4==4.9.1
-jsonschema==3.2.0
-tmdbv3api==1.6.1
-lxml==4.6.3
-urllib3==1.26.5
-requests==2.23.0
-pickleshare==0.7.5
+# Relaxed requirements to allow the resolver to pick recent compatible releases.
+# These minimal constraints avoid old, conflicting pins and let pip install up-to-date
+# packages (you can pin specific versions later if necessary).
+
+Flask>=2.3.2
+gunicorn>=20.0.4
+Jinja2>=3.0
+MarkupSafe>=2.0
+Werkzeug>=2.3.3
+numpy>=1.24
+scipy>=1.9
+nltk>=3.6
+scikit-learn>=1.2
+pandas>=1.5
+beautifulsoup4>=4.11
+jsonschema>=4.0
+tmdbv3api>=1.6.1
+lxml>=4.9
+urllib3>=1.26
+requests>=2.28
+pickleshare>=0.7.5
+
+# End of requirements

@@ -1,0 +1,23 @@
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env
+.ipynb_checkpoints/
+
+# System / IDE
+.DS_Store
+Thumbs.db
+*.log
+
+# Large Datasets (>50MB - GitHub File Limit is 100MB)
+TMDB_movie_dataset_v11.csv
+credits.csv
+movies_metadata.csv
+movie_metadata.csv
+datasets/
+data.csv
+new_data.csv
+reviews.txt

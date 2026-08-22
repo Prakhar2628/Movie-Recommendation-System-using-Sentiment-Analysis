@@ -1,77 +1,482 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Movie Recommendation System</title>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CINEFLIX AI – Ultimate Movie Recommendations</title>
+  <meta name="description" content="Discover movies tailored to your mood, time of day, and taste. Powered by AI sentiment analysis.">
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
-
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP&display=swap" rel="stylesheet">
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <!-- Bootstrap -->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-
-  <!-- Auto Complete -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <!-- AutoComplete -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@7.2.0/dist/css/autoComplete.min.css">
-  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
-  <script type="text/javascript">
-    var films = {{suggestions|tojson}};
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  <script>
+    var films = {{ suggestions|tojson }};
+    var TMDB_API_KEY = "{{ tmdb_api_key }}" || "7eefc11ad1e9ff5917d0c9f7731d067f";
   </script>
-
 </head>
+<body>
 
-<body id="content" style="font-family: 'Noto Sans JP', sans-serif;">
-
-	<div class="ml-container" style="display: block;">
-		<a href="https://github.com/kishan0725/AJAX-Movie-Recommendation-System-with-Sentiment-Analysis" target="_blank" class="github-corner" title="View source on GitHub">
-		      <svg data-toggle="tooltip"
-		      data-placement="left" width="80" height="80" viewBox="0 0 250 250"
-			style="fill:#e50914; color:#fff; position: fixed;z-index:100; top: 0; border: 0; right: 0;" aria-hidden="true">
-			<path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
-			<path
-			  d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
-			  fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
-			<path
-			  d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
-			  fill="currentColor" class="octo-body"></path>
-		      </svg>
-		    </a>
-    <center><h1 style=""> Movie Recommendation System</h1></center>
-    <div class="form-group shadow-textarea" style="margin-top: 30px;text-align: center;color: white;">
-        <input type="text" name="movie" class="movie form-control" id="autoComplete" autocomplete="off" placeholder="Enter the Movie Name" style="background-color: #ffffff;border-color:#ffffff;width: 60%;color: #181818" required="required" />
-        <br>
-    </div>
-
-    <div class="form-group" style="text-align: center;">
-      <button class="btn btn-primary btn-block movie-button" style="background-color: #e50914;text-align: center;border-color: #e50914;width:120px;" disabled="true" >Enter</button><br><br>
-    </div>
-	</div>
-
-  <div id="loader" class="text-center">
+<!-- ── Navbar ────────────────────────────────────────────────────────── -->
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="CINEFLIX AI Logo" class="nav-logo-img">
+    <span class="brand-text">CINEFLIX <span class="brand-badge">AI</span></span>
+  </a>
+  <div class="nav-links">
+    <a href="#discover"  class="nav-link active">Discover</a>
+    <a href="#trending"  class="nav-link">Trending</a>
+    <a href="#mood"      class="nav-link">Mood Picks</a>
+    <a href="#time"      class="nav-link">Time Based</a>
+    <a href="#category"  class="nav-link">Categories</a>
   </div>
+</nav>
+
+<!-- ── Centered Hero Section with Custom 3D Logo ──────────────────────── -->
+<section class="hero-centered" id="discover">
+  <div class="hero-logo-wrapper">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="CINEFLIX AI Custom 3D Logo" class="hero-3d-logo">
+    <div class="hero-logo-glow"></div>
+  </div>
+
+  <div class="hero-badge">✨ AI-POWERED CINEMATIC ENGINE</div>
+  <h1>Find Your Next Favorite Movie</h1>
+  <p class="hero-sub">Instant recommendations, cast biographies &amp; NLP sentiment analysis</p>
+
+  <div class="search-wrap">
+    <i class="fa fa-search search-icon"></i>
+    <input type="text" id="autoComplete" class="movie" autocomplete="off" placeholder="Search any movie… e.g. Inception, Interstellar, Avatar">
+    <button class="search-btn movie-button" disabled id="searchBtn">
+      <i class="fa fa-magic"></i> Explore
+    </button>
+  </div>
+
+  <!-- Popular Quick Search Tags -->
+  <div class="quick-tags">
+    <span style="color:var(--text-muted);font-size:0.8rem;margin-right:6px;">Try searching:</span>
+    <button class="quick-tag" onclick="searchQuickTag('Inception')">Inception</button>
+    <button class="quick-tag" onclick="searchQuickTag('Interstellar')">Interstellar</button>
+    <button class="quick-tag" onclick="searchQuickTag('The Dark Knight')">The Dark Knight</button>
+    <button class="quick-tag" onclick="searchQuickTag('Avatar')">Avatar</button>
+    <button class="quick-tag" onclick="searchQuickTag('Oppenheimer')">Oppenheimer</button>
+  </div>
+</section>
+
+<!-- ── Loader ────────────────────────────────────────────────────────── -->
+<div id="loader">
+  <div class="loader-ring"></div>
+  <div class="loader-text">Finding your movie…</div>
+</div>
+
+<!-- ── Fail message ──────────────────────────────────────────────────── -->
+<div class="fail">
+  <div class="fail-card">
+    <div class="fail-icon">🎭</div>
+    <h3>Movie not found in our database.<br>Check spelling or try another title!</h3>
+  </div>
+</div>
+
+<!-- ── Results (AJAX recommendation content loads here) ──────────────── -->
+<div class="results"></div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- ── Trending Section ────────────────────────────────────────────── -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="trending">
+  <div class="section-header">
+    <h2 class="section-title"><span class="dot"></span> 🔥 Trending Now</h2>
+  </div>
+  <div class="movie-row" id="trending-movies">
+    <div style="color:var(--text-muted);padding:20px;">Loading trending movies…</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- ── Mood-Based Section ────────────────────────────────────────── -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="mood-section" id="mood">
+  <div class="section-header">
+    <h2 class="section-title"><span class="dot"></span> How Are You Feeling?</h2>
+  </div>
+  <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:4px;">Pick your mood and we'll suggest matching movies</p>
+
+  <div class="mood-grid">
+    <button class="mood-btn active" data-mood="happy"       onclick="selectMood(this)"><span class="mood-emoji">😄</span><span>Happy</span></button>
+    <button class="mood-btn"        data-mood="sad"         onclick="selectMood(this)"><span class="mood-emoji">😢</span><span>Sad</span></button>
+    <button class="mood-btn"        data-mood="excited"     onclick="selectMood(this)"><span class="mood-emoji">🤩</span><span>Excited</span></button>
+    <button class="mood-btn"        data-mood="scared"      onclick="selectMood(this)"><span class="mood-emoji">😱</span><span>Scared</span></button>
+    <button class="mood-btn"        data-mood="romantic"    onclick="selectMood(this)"><span class="mood-emoji">❤️</span><span>Romantic</span></button>
+    <button class="mood-btn"        data-mood="chill"       onclick="selectMood(this)"><span class="mood-emoji">😌</span><span>Chill</span></button>
+    <button class="mood-btn"        data-mood="angry"       onclick="selectMood(this)"><span class="mood-emoji">😤</span><span>Angry</span></button>
+    <button class="mood-btn"        data-mood="curious"     onclick="selectMood(this)"><span class="mood-emoji">🧐</span><span>Curious</span></button>
+    <button class="mood-btn"        data-mood="nostalgic"   onclick="selectMood(this)"><span class="mood-emoji">🌅</span><span>Nostalgic</span></button>
+    <button class="mood-btn"        data-mood="adventurous" onclick="selectMood(this)"><span class="mood-emoji">🚀</span><span>Adventure</span></button>
+  </div>
+
+  <div id="mood-result" style="margin-top:20px;">
+    <div class="section-header" style="margin-bottom:8px;">
+      <h3 class="section-title" id="mood-label" style="font-size:0.95rem;color:var(--purple-300);">😄 Happy Picks</h3>
+    </div>
+    <div class="movie-row" id="mood-movies">
+      <div style="color:var(--text-muted);padding:20px;">Loading…</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- ── Time-Based Section ────────────────────────────────────────── -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="time-banner" id="time">
+  <span class="time-icon" id="time-icon">🌙</span>
+  <div class="time-info">
+    <h3 id="time-greeting">Good Evening!</h3>
+    <p id="time-desc">Perfect time for gripping Drama &amp; Thriller movies</p>
+  </div>
+  <button class="time-refresh-btn" onclick="loadTimePicks()">
+    <i class="fa fa-sync-alt"></i> Refresh Picks
+  </button>
+</div>
+
+<div class="section" id="time-section" style="padding-top:0;">
+  <div class="section-header">
+    <h2 class="section-title"><span class="dot"></span> <span id="time-section-title">Evening Picks for You</span></h2>
+  </div>
+  <div class="movie-row" id="time-movies">
+    <div style="color:var(--text-muted);padding:20px;">Loading time-based picks…</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- ── Category Section ──────────────────────────────────────────── -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="category" style="padding-top:0;">
+  <div class="section-header">
+    <h2 class="section-title"><span class="dot"></span> Browse by Category</h2>
+  </div>
+
+  <div class="category-tabs" id="cat-tabs">
+    <button class="cat-tab active" data-genre-id="28"    onclick="selectCategory(this)">🔥 Action</button>
+    <button class="cat-tab"        data-genre-id="35"    onclick="selectCategory(this)">😂 Comedy</button>
+    <button class="cat-tab"        data-genre-id="10749" onclick="selectCategory(this)">💖 Romance</button>
+    <button class="cat-tab"        data-genre-id="27"    onclick="selectCategory(this)">👻 Horror</button>
+    <button class="cat-tab"        data-genre-id="53"    onclick="selectCategory(this)">🎭 Thriller</button>
+    <button class="cat-tab"        data-genre-id="878"   onclick="selectCategory(this)">🚀 Sci-Fi</button>
+    <button class="cat-tab"        data-genre-id="18"    onclick="selectCategory(this)">🎬 Drama</button>
+    <button class="cat-tab"        data-genre-id="16"    onclick="selectCategory(this)">✨ Animation</button>
+    <button class="cat-tab"        data-genre-id="12"    onclick="selectCategory(this)">🗺️ Adventure</button>
+    <button class="cat-tab"        data-genre-id="80"    onclick="selectCategory(this)">🔍 Crime</button>
+    <button class="cat-tab"        data-genre-id="9648"  onclick="selectCategory(this)">🕵️ Mystery</button>
+    <button class="cat-tab"        data-genre-id="10751" onclick="selectCategory(this)">👨‍👩‍👧 Family</button>
+  </div>
+
+  <div class="movie-row" id="category-movies">
+    <div style="color:var(--text-muted);padding:20px;">Loading…</div>
+  </div>
+</section>
+
+<!-- ── Quick View Movie Modal ────────────────────────────────────────── -->
+<div class="modal fade" id="quickViewModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content" style="border-radius:16px;overflow:hidden;background:var(--purple-800);border:1px solid var(--glass-border);">
+      <div class="modal-header" style="border-bottom:1px solid var(--glass-border);background:rgba(15,7,30,0.8);">
+        <h5 class="modal-title" id="qv-title" style="font-weight:800;color:#fff;font-size:1.4rem;">Movie Title</h5>
+        <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:0.8;"><span>&times;</span></button>
+      </div>
+      <div class="modal-body" style="padding:24px;">
+        <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;">
+          <img id="qv-poster" src="" alt="poster" style="width:180px;height:240px;object-fit:cover;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.6);flex-shrink:0;">
+          <div style="flex:1;min-width:240px;">
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+              <span id="qv-rating" class="rating-badge"><i class="fa fa-star"></i> 8.5/10</span>
+              <span id="qv-date" style="font-size:0.85rem;color:var(--purple-300);font-weight:600;">2024</span>
+            </div>
+            <p id="qv-overview" style="color:var(--text-muted);font-size:0.9rem;line-height:1.6;margin-bottom:20px;max-height:140px;overflow-y:auto;"></p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+              <button class="search-btn" style="position:static;transform:none;" onclick="watchTrailerFromModal()">
+                <i class="fa fa-play"></i> &nbsp;Watch Trailer
+              </button>
+              <button class="search-btn" style="position:static;transform:none;background:linear-gradient(135deg,#7c3aed,#c026d3);" onclick="getRecommendationsFromModal()">
+                <i class="fa fa-magic"></i> &nbsp;Get AI Recommendations
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Aesthetic Netflix-Style Footer ───────────────────────────────── -->
+<footer class="netflix-footer">
+  <div class="footer-container">
+    <div class="footer-brand-col">
+      <a href="/" class="navbar-brand" style="margin-bottom:12px;display:inline-flex;align-items:center;gap:10px;">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="CINEFLIX AI Logo" style="width:36px;height:36px;border-radius:8px;">
+        <span class="brand-text">CINEFLIX <span class="brand-badge">AI</span></span>
+      </a>
+      <p style="color:var(--text-muted);font-size:0.85rem;line-height:1.6;max-width:320px;">
+        Next-generation AI cinematic engine. Recommending movies based on sentiment analysis, mood matching, and contextual time algorithms.
+      </p>
+      <div class="footer-socials">
+        <a href="javascript:void(0)"><i class="fab fa-twitter"></i></a>
+        <a href="javascript:void(0)"><i class="fab fa-instagram"></i></a>
+        <a href="javascript:void(0)"><i class="fab fa-youtube"></i></a>
+        <a href="javascript:void(0)"><i class="fab fa-discord"></i></a>
+      </div>
+    </div>
+
+    <div class="footer-links-col">
+      <h4 class="footer-col-title">Navigation</h4>
+      <ul>
+        <li><a href="#discover">Discover Search</a></li>
+        <li><a href="#trending">Trending Now</a></li>
+        <li><a href="#mood">Mood Picks</a></li>
+        <li><a href="#time">Time Based Picks</a></li>
+        <li><a href="#category">Categories</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-links-col">
+      <h4 class="footer-col-title">Technology</h4>
+      <ul>
+        <li><a href="javascript:void(0)">NLP Sentiment Model</a></li>
+        <li><a href="javascript:void(0)">Cosine Similarity ML</a></li>
+        <li><a href="javascript:void(0)">TMDB API v3</a></li>
+        <li><a href="javascript:void(0)">Python Flask Engine</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-links-col">
+      <h4 class="footer-col-title">Legal &amp; Info</h4>
+      <ul>
+        <li><a href="javascript:void(0)">Privacy Policy</a></li>
+        <li><a href="javascript:void(0)">Terms of Service</a></li>
+        <li><a href="javascript:void(0)">Cookie Preferences</a></li>
+        <li><a href="javascript:void(0)">Help Center</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; 2026 CINEFLIX AI. All rights reserved. Powered by Advanced Sentiment NLP &amp; TMDB.</p>
+  </div>
+</footer>
+
+<!-- ── Scripts ────────────────────────────────────────────────────── -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@7.2.0/dist/js/autoComplete.min.js"></script>
+<script src="{{ url_for('static', filename='autocomplete.js') }}"></script>
+<script src="{{ url_for('static', filename='recommend.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+<script>
+var currentQvTitle = '';
+const TODAY_DATE = new Date().toISOString().split('T')[0];
+
+function searchQuickTag(title) {
+  $('#autoComplete').val(title);
+  $('.movie-button').attr('disabled', false);
+  $('.movie-button').click();
+}
+
+// Navbar click navigation: restore sections & scroll
+$('.nav-link').on('click', function(e) {
+  $('.nav-link').removeClass('active');
+  $(this).addClass('active');
+
+  // Restore home sections if hidden by search results
+  $('.results').hide();
+  $('.fail').hide();
+  $('#trending, #mood, #time, #time-section, #category').show();
+
+  var target = $(this).attr('href');
+  if (target && target.startsWith('#')) {
+    e.preventDefault();
+    var elem = $(target);
+    if (elem.length) {
+      $('html, body').animate({
+        scrollTop: elem.offset().top - 80
+      }, 400);
+    }
+  }
+});
+
+const GENRE_MAP = {
+  28: 'Action', 35: 'Comedy', 10749: 'Romance', 27: 'Horror', 53: 'Thriller',
+  878: 'Sci-Fi', 18: 'Drama', 16: 'Animation', 12: 'Adventure', 80: 'Crime',
+  9648: 'Mystery', 10751: 'Family'
+};
+
+const MOOD_GENRES = {
+  happy:       '35,16,10751',
+  sad:         '18,10749',
+  excited:     '28,12,878',
+  scared:      '27,53,9648',
+  romantic:    '10749,18',
+  chill:       '35,10402',
+  angry:       '28,80,53',
+  curious:     '9648,878',
+  nostalgic:   '10751,14,12',
+  adventurous: '12,28,14'
+};
+
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function renderTmdbCards(movies, containerId) {
+  const container = document.getElementById(containerId);
+  if (!movies || movies.length === 0) {
+    container.innerHTML = '<div style="color:var(--text-muted);padding:20px;">No movies found.</div>';
+    return;
+  }
   
-  <div class="fail">
-    <center><h3>Sorry! The movie you requested is not in our database. 
-    Please check the spelling or try with other movies!</h3></center>
-  </div>
+  const releasedMovies = movies.filter(function(m) {
+    if (!m.poster_path) return false;
+    if (m.release_date && m.release_date > TODAY_DATE) return false;
+    return true;
+  });
 
-	<div class="results">
-    <center>
-      <h2 id="name" class="text-uppercase"></h2>
-    </center>
-	</div>
-	
-	<div class="footer" style="">Made with<span style="font-size:150%;color:red;"> &hearts; </span>by Kishan</div>
-	
-	<script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@7.2.0/dist/js/autoComplete.min.js"></script>
-  <script type="text/javascript" src="{{url_for('static', filename='autocomplete.js')}}"></script>
+  const displayList = releasedMovies.length > 0 ? releasedMovies : movies;
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script type="text/javascript" src="{{url_for('static', filename='recommend.js')}}"></script>
+  const html = displayList.map(function(m) {
+    const poster = m.poster_path ? ('https://image.tmdb.org/t/p/w342' + m.poster_path) : 'https://via.placeholder.com/160x240/120924/8c52ff?text=🎬';
+    const rating = m.vote_average ? m.vote_average.toFixed(1) : '7.5';
+    const title  = (m.title || m.original_title || '').replace(/"/g, '&quot;');
+    const overview = (m.overview || 'No description available.').replace(/"/g, '&quot;');
+    const year = m.release_date ? m.release_date.substring(0,4) : '';
+
+    return `
+      <div class="movie-card" title="${title}" data-overview="${overview}" data-poster="${poster}" data-rating="${rating}" data-year="${year}" onclick="openQuickView(this)">
+        <img src="${poster}" alt="${title}" onerror="this.src='https://via.placeholder.com/160x240/120924/8c52ff?text=🎬'">
+        <span class="card-label">★ ${rating}</span>
+        <div class="movie-card-overlay">
+          <button class="play-btn" title="Explore"><i class="fa fa-play"></i></button>
+          <div class="card-title">${title}</div>
+        </div>
+      </div>`;
+  }).join('');
+  
+  container.innerHTML = html;
+}
+
+function openQuickView(card) {
+  const title = card.getAttribute('title');
+  const overview = card.getAttribute('data-overview');
+  const poster = card.getAttribute('data-poster');
+  const rating = card.getAttribute('data-rating');
+  const year = card.getAttribute('data-year');
+
+  currentQvTitle = title;
+  $('#qv-title').text(title);
+  $('#qv-overview').text(overview);
+  $('#qv-poster').attr('src', poster);
+  $('#qv-rating').html('<i class="fa fa-star"></i> ' + rating + '/10');
+  $('#qv-date').text(year ? ('Release: ' + year) : '');
+
+  $('#quickViewModal').modal('show');
+}
+
+function watchTrailerFromModal() {
+  if (currentQvTitle) {
+    watchTrailer(currentQvTitle);
+  }
+}
+
+function getRecommendationsFromModal() {
+  $('#quickViewModal').modal('hide');
+  if (currentQvTitle) {
+    var key = typeof TMDB_API_KEY !== 'undefined' && TMDB_API_KEY ? TMDB_API_KEY : '7eefc11ad1e9ff5917d0c9f7731d067f';
+    load_details(key, currentQvTitle);
+  }
+}
+
+function loadTrending() {
+  const randomPage = Math.floor(Math.random() * 3) + 1;
+  $.get(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_API_KEY}&page=${randomPage}`, function(data) {
+    renderTmdbCards(shuffleArray(data.results || []).slice(0, 15), 'trending-movies');
+  });
+}
+
+function selectMood(btn) {
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const mood = btn.dataset.mood;
+  const genreIds = MOOD_GENRES[mood] || '35';
+  
+  document.getElementById('mood-label').textContent = 
+    btn.querySelector('.mood-emoji').textContent + ' ' + mood.charAt(0).toUpperCase() + mood.slice(1) + ' Picks';
+
+  const randomPage = Math.floor(Math.random() * 5) + 1;
+  const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreIds}&primary_release_date.lte=${TODAY_DATE}&sort_by=popularity.desc&page=${randomPage}`;
+
+  $.get(url, function(data) {
+    renderTmdbCards(shuffleArray(data.results || []).slice(0, 15), 'mood-movies');
+  });
+}
+
+function getTimePeriod() {
+  const h = new Date().getHours();
+  if (h >= 5  && h < 12) return 'morning';
+  if (h >= 12 && h < 17) return 'afternoon';
+  if (h >= 17 && h < 21) return 'evening';
+  return 'night';
+}
+
+const TIME_META = {
+  morning:   { icon:'☀️',  greeting:'Good Morning!',   desc:'Start your day with feel-good Comedy & Animation',      genreIds:'35,16',    title:'Morning Picks'   },
+  afternoon: { icon:'🌤️', greeting:'Good Afternoon!', desc:'Power through with Action-packed Adventures & Sci-Fi',  genreIds:'28,12,878',title:'Afternoon Picks' },
+  evening:   { icon:'🌆', greeting:'Good Evening!',   desc:'Unwind with gripping Drama, Romance & Thriller',        genreIds:'18,10749,53',title:'Evening Picks' },
+  night:     { icon:'🌙', greeting:'Good Night!',     desc:'Late-night thrills with Horror, Mystery & Crime',       genreIds:'27,9648,80',title:'Night Picks'   },
+};
+
+function loadTimePicks() {
+  const period = getTimePeriod();
+  const m = TIME_META[period];
+  document.getElementById('time-icon').textContent     = m.icon;
+  document.getElementById('time-greeting').textContent = m.greeting;
+  document.getElementById('time-desc').textContent     = m.desc;
+  document.getElementById('time-section-title').textContent = m.title;
+
+  const randomPage = Math.floor(Math.random() * 6) + 1;
+  const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${m.genreIds}&primary_release_date.lte=${TODAY_DATE}&sort_by=popularity.desc&page=${randomPage}`;
+
+  $.get(url, function(data) {
+    renderTmdbCards(shuffleArray(data.results || []).slice(0, 15), 'time-movies');
+  });
+}
+
+function selectCategory(btn) {
+  document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const genreId = btn.dataset.genreId;
+
+  const randomPage = Math.floor(Math.random() * 5) + 1;
+  const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreId}&primary_release_date.lte=${TODAY_DATE}&sort_by=popularity.desc&page=${randomPage}`;
+
+  $.get(url, function(data) {
+    renderTmdbCards(shuffleArray(data.results || []).slice(0, 15), 'category-movies');
+  });
+}
+
+// Init
+loadTrending();
+selectMood(document.querySelector('.mood-btn.active'));
+loadTimePicks();
+selectCategory(document.querySelector('.cat-tab.active'));
+</script>
 
 </body>
 </html>
