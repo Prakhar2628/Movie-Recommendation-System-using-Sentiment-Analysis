@@ -50,44 +50,32 @@
 ## 🏗️ System Architecture
 
 ```mermaid
-flowchart TD
-    subgraph Client ["🌐 Frontend (Client Browser)"]
-        UI["CINEFLIX AI UI"]
-        Search["Autocomplete Search"]
-        QuickView["3D Quick View Modal"]
-        Trailer["YouTube Trailer Player"]
-    end
+graph TD
+    classDef client fill:#1e1035,stroke:#8c52ff,stroke-width:2px,color:#fff;
+    classDef server fill:#27124d,stroke:#d946ef,stroke-width:2px,color:#fff;
+    classDef model fill:#120924,stroke:#3b82f6,stroke-width:2px,color:#fff;
+    classDef external fill:#0f172a,stroke:#06b6d4,stroke-width:2px,color:#fff;
 
-    subgraph Server ["⚡ Flask Backend Server (main.py)"]
-        RouteRoot["GET /"]
-        RouteSim["POST /similarity"]
-        RouteRec["POST /recommend"]
-        RouteSentiment["POST /analyze_sentiment"]
-        
-        NLP_Theme["AI Semantic Theme Extractor"]
-        Hybrid_NLP["Hybrid NLP Classifier (TF-IDF + NaiveBayes + Lexicon)"]
-    end
-
-    subgraph Data ["💾 Data & ML Models"]
-        CSV_Data[("main_data.csv\n(6000+ Movies)")]
-        NLP_Model[("nlp_model.pkl & tranform.pkl")]
-        TMDB_API[("TMDB API v3\n(Posters, Credits, Reviews)")]
-    end
-
-    UI --> Search
-    Search --> RouteSim
-    RouteSim --> CSV_Data
-    CSV_Data -->|Cosine Similarity Matrix| RouteSim
-    RouteSim -->|Similar Titles| UI
+    A["📱 CINEFLIX AI Frontend UI\n(Client Browser & 3D Glassmorphism)"] ::: client
     
-    UI --> RouteRec
-    RouteRec --> TMDB_API
-    TMDB_API -->|Reviews & Details| RouteSentiment
-    RouteSentiment --> Hybrid_NLP
-    Hybrid_NLP --> NLP_Model
-    RouteRec --> NLP_Theme
-    NLP_Theme -->|Semantic Tags| UI
-    RouteSentiment -->|POSITIVE / NEGATIVE Badges| UI
+    A -->|"1. Search Title"| B["🔍 Autocomplete Engine"] ::: client
+    A -->|"2. Click Discovery"| C["🔥 Dynamic Picks\n(Trending / Mood / Time / Category)"] ::: client
+    A -->|"3. Quick View Modal"| D["🎭 3D Preview & YouTube Trailer Player"] ::: client
+
+    B -->|"POST /similarity"| E["⚡ Flask Backend Server\n(main.py)"] ::: server
+    C -->|"GET /discover"| F["🌐 TMDB API v3\n(Posters, Credits, Reviews)"] ::: external
+
+    E -->|"Compute Vector Distance"| G["📊 Cosine Similarity Engine"] ::: model
+    G -->|"Feature Vectors"| H[("💾 main_data.csv\n6,000+ Indexed Movies")] ::: model
+    G -->|"Top 10 Recommendations"| A
+
+    E -->|"POST /analyze_sentiment"| I["🧠 Hybrid Sentiment NLP Engine"] ::: model
+    F -->|"Fetch Audience Reviews"| I
+    I -->|"TF-IDF & Naive Bayes"| J[("📦 NLP Models\nnlp_model.pkl & tranform.pkl")] ::: model
+    I -->|"Return Badges"| K["🏷️ POSITIVE / NEGATIVE Sentiment Badges"] ::: client
+    
+    E -->|"Extract Plot Semantics"| L["✨ AI Semantic Theme Extractor"] ::: model
+    L -->|"Tag Themes"| A
 ```
 
 ---
