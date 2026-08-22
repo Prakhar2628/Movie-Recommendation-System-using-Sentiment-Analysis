@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="static/images/logo.png" alt="CINEFLIX AI Logo" width="140" style="border-radius: 24px; box-shadow: 0 10px 30px rgba(217,70,239,0.4);">
+  <img src="backend/static/images/logo.png" alt="CINEFLIX AI Logo" width="140" style="border-radius: 24px; box-shadow: 0 10px 30px rgba(217,70,239,0.4);">
 
   # 🎬 CINEFLIX AI
   ### Next-Generation Movie Recommendation Engine & Sentiment NLP Analyzer
@@ -92,7 +92,7 @@ graph TD
     Picks["🔥 Mood / Time / Category Picks"]
     QuickView["🎭 3D Preview Modal + YouTube Player"]
 
-    FastAPI["⚡ FastAPI Backend (main.py · Uvicorn ASGI)"]
+    FastAPI["⚡ FastAPI Backend (app.main · Uvicorn ASGI)"]
     TMDB["🌐 TMDB API v3 (Posters · Credits · Reviews)"]
     YouTube["🎬 YouTube Trailer API"]
 
@@ -138,7 +138,7 @@ graph TD
            │                          │                            │
            ▼                          ▼                            ▼
 ┌──────────────────────────┐  ┌──────────────────┐  ┌─────────────────────────────┐
-│ ⚡ FastAPI main.py        │  │ 🌐 TMDB API v3   │  │ 🎬 YouTube Trailer API      │
+│ ⚡ FastAPI (app.main)     │  │ 🌐 TMDB API v3   │  │ 🎬 YouTube Trailer API      │
 │ Uvicorn ASGI Server      │  │ (Posters/Reviews) │  │ (Embedded Playback)         │
 │ OpenAPI Docs at /docs    │  └──────────────────┘  └─────────────────────────────┘
 └──────────┬───────────────┘
@@ -159,18 +159,36 @@ graph TD
 
 CINEFLIX AI's backend is built on **[FastAPI](https://fastapi.tiangolo.com/)** — a modern, high-performance Python web framework for building APIs with Python 3.9+ type hints. It runs on **Uvicorn**, an ASGI server built on `uvloop` and `httptools`.
 
-### Why FastAPI over Flask?
+### Why FastAPI?
 
-| Feature | Flask (Old) | FastAPI (Current) ✅ |
-| :--- | :--- | :--- |
-| **Concurrency Model** | WSGI (synchronous) | ASGI (async/await — non-blocking I/O) |
-| **Performance** | ~1,000 req/s | ~3,000–10,000+ req/s |
-| **API Docs** | None (manual) | Auto-generated OpenAPI `/docs` & `/redoc` |
-| **Request Validation** | Manual / WTForms | Built-in via Python type hints & Pydantic |
-| **Form Data Handling** | `request.form` | `Form(...)` dependency injection |
-| **Template Rendering** | Jinja2 (Flask baked-in) | Jinja2 (via `Jinja2Templates`) |
-| **Production Server** | Gunicorn (WSGI) | Uvicorn (ASGI) |
-| **Type Safety** | ❌ None | ✅ Full type annotation support |
+| Capability | Detail |
+| :--- | :--- |
+| **⚡ Async / Non-Blocking I/O** | Built on ASGI — handles thousands of concurrent requests with `async/await` without threads. |
+| **📄 Auto OpenAPI Docs** | Swagger UI at `/docs` and ReDoc at `/redoc` are auto-generated with zero configuration. |
+| **✅ Type-Safe Requests** | Python type hints + Pydantic models provide compile-time safety and runtime validation. |
+| **📬 Form Dependency Injection** | `Form(...)` parameters are declaratively injected — no manual `request.form` parsing. |
+| **🚀 Production-Ready** | Uvicorn ASGI server delivers **3,000–10,000+ req/s** throughput in production. |
+| **🧩 Modular Routers** | `APIRouter` enables clean separation of concerns across `home`, `recommend`, `sentiment`, and `discovery` modules. |
+
+### Modular Backend Structure
+
+The backend is split into clean, focused layers:
+
+```
+app/
+├── main.py               ← App factory: mounts static files, registers all routers
+├── core/config.py        ← Centralised settings: paths, API keys, host/port
+├── routers/              ← HTTP route handlers (thin layer — delegate to services)
+│   ├── home.py           ← GET /  and  GET /home
+│   ├── recommend.py      ← POST /similarity  and  POST /recommend
+│   ├── sentiment.py      ← POST /analyze_sentiment
+│   └── discovery.py      ← POST /mood, /time_picks, /category
+├── services/             ← Business logic (ML, NLP, theme extraction)
+│   ├── ml_engine.py      ← Cosine similarity recommendation engine
+│   ├── sentiment_engine.py  ← Hybrid NLP sentiment classifier
+│   └── theme_extractor.py   ← AI semantic theme extraction
+└── utils/helpers.py      ← Shared utilities (list parser, suggestions loader)
+```
 
 ### Interactive API Documentation
 Once the server is running, FastAPI auto-generates interactive docs:
@@ -250,7 +268,7 @@ Extracts emotional and narrative themes from plot overviews:
 | :--- | :--- | :--- |
 | **Python** | 3.9+ | Core language |
 | **FastAPI** | ≥ 0.100 | Async ASGI web framework |
-| **Uvicorn** | ≥ 0.23 | ASGI production server (replaces Gunicorn) |
+| **Uvicorn** | ≥ 0.23 | ASGI production server |
 | **Jinja2** | ≥ 3.0 | Server-side HTML templating |
 | **python-multipart** | ≥ 0.0.7 | `multipart/form-data` parsing for `Form(...)` |
 
@@ -288,8 +306,8 @@ Extracts emotional and narrative themes from plot overviews:
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/kishan0725/AJAX-Movie-Recommendation-System-with-Sentiment-Analysis.git
-   cd Movie-Recommendation-System-with-Sentiment-Analysis
+   git clone https://github.com/Prakhar2628/Movie-Recommendation-System-using-Sentiment-Analysis.git
+   cd Movie-Recommendation-System-using-Sentiment-Analysis
    ```
 
 2. **Create and activate a virtual environment**:
@@ -340,14 +358,14 @@ Extracts emotional and narrative themes from plot overviews:
 ## 📂 Project Structure
 
 ```
-Movie-Recommendation-System-with-Sentiment-Analysis/
+Movie-Recommendation-System-using-Sentiment-Analysis/
 │
-├── Procfile                     # 🚀 Heroku deploy: uvicorn app.main:app
+├── Procfile                     # 🚀 Deploy: cd backend && uvicorn app.main:app
 ├── README.md
 │
 └── backend/                     # ⚡ FastAPI Application Root
     ├── requirements.txt         # 📋 Python Package Dependencies
-    ├── .env.example             # 🔑 Environment variable template
+    ├── .env.example             # 🔑 Environment variable template (copy → .env)
     │
     ├── app/                     # 🏗️ Application Package
     │   ├── main.py              # 🚀 FastAPI app factory — mounts static & includes routers
