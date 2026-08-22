@@ -60,7 +60,7 @@ function load_details(my_api_key, title){
   });
 }
 
-// Get similar movies from Flask ML model or TMDB fallback
+// Get similar movies from FastAPI ML model or TMDB fallback
 function movie_recs(movie_title, movie_id, my_api_key){
   $.ajax({
     type: 'POST',
@@ -108,7 +108,7 @@ function get_movie_details(movie_id, my_api_key, arr, movie_title) {
   });
 }
 
-// Build and send all data to Flask /recommend endpoint
+// Build and send all data to FastAPI /recommend endpoint
 function show_details(movie_details, arr, movie_title, my_api_key, movie_id){
   var imdb_id    = movie_details.imdb_id;
   var poster     = movie_details.poster_path ? ('https://image.tmdb.org/t/p/original' + movie_details.poster_path) : 'https://via.placeholder.com/300x450/120924/8c52ff?text=🎬';
