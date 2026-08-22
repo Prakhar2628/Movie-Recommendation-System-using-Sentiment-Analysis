@@ -6,13 +6,14 @@
   ### Next-Generation Movie Recommendation Engine & Sentiment NLP Analyzer
 
   [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-  [![Flask](https://img.shields.io/badge/Flask-3.0%2B-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+  [![Uvicorn](https://img.shields.io/badge/Uvicorn-ASGI%20Server-4B5563?style=for-the-badge&logo=gunicorn&logoColor=white)](https://www.uvicorn.org)
   [![Scikit-Learn](https://img.shields.io/badge/scikit--learn-NLP%2FML-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
   [![TMDB API](https://img.shields.io/badge/TMDB-v3%20API-01B4E4?style=for-the-badge&logo=themoviedatabase&logoColor=white)](https://www.themoviedb.org)
   [![License](https://img.shields.io/badge/License-MIT-purple?style=for-the-badge)](LICENSE)
 
   <p align="center">
-    <b>Personalized movie discovery powered by Cosine Similarity ML, hybrid Sentiment Analysis, and AI Semantic Theme Extraction.</b>
+    <b>Personalized movie discovery powered by Cosine Similarity ML, Hybrid Sentiment Analysis, and AI Semantic Theme Extraction — served by a high-performance async FastAPI backend.</b>
   </p>
 
 </div>
@@ -21,15 +22,15 @@
 
 ## 📌 Table of Contents
 - [🌟 Key Features](#-key-features)
+- [🧠 ML & NLP Models Breakdown](#-machine-learning--nlp-models-breakdown)
+- [🎭 Interactive UI Modals](#-interactive-ui-modals--components)
 - [🏗️ System Architecture](#️-system-architecture)
-- [🧠 Machine Learning & NLP Pipeline](#-machine-learning--nlp-pipeline)
-  - [1. Content-Based Cosine Similarity](#1-content-based-cosine-similarity)
-  - [2. Hybrid Sentiment Classifier](#2-hybrid-sentiment-classifier)
-  - [3. AI Semantic Theme Extractor](#3-ai-semantic-theme-extractor)
+- [⚡ FastAPI Backend Deep Dive](#-fastapi-backend-deep-dive)
 - [🔌 API Endpoints](#-api-endpoints)
 - [🛠️ Tech Stack](#️-tech-stack)
 - [🚀 Quick Start Guide](#-quick-start-guide)
 - [📂 Project Structure](#-project-structure)
+- [📊 Datasets](#-datasets--large-data-files)
 - [📄 License & Acknowledgments](#-license--acknowledgments)
 
 ---
@@ -38,12 +39,14 @@
 
 | Feature | Description |
 | :--- | :--- |
-| **🤖 Content-Based ML Recommendations** | Calculates cosine similarity matrices across 6,000+ movies using actor, director, genre, and keyword vector spaces. |
-| **🧠 Hybrid Sentiment NLP Engine** | Analyzes audience reviews with TF-IDF Vectorization + Naive Bayes + Lexicon & Negation Phrase Tracking to deliver `POSITIVE` vs `NEGATIVE` verdicts. |
-| **🏷️ AI Semantic Theme Extraction** | Natural Language Processing algorithm parses movie overviews to auto-generate emotional tags (*e.g., `🧠 Mind-Bending`, `💥 High-Octane Action`, `🚀 Epic Sci-Fi`*). |
-| **🎭 Interactive 3D Quick View** | Click any movie card for backdrop previews, ratings, overview, cast bio popups, and instant YouTube trailer playback. |
-| **🔥 Dynamic Discovery Sections** | Explore live **Trending Now**, **Mood-Based Picks** (*Happy, Sad, Scared, Chill*), **Time-of-Day Picks** (*Morning, Evening, Night*), and **Categories**. |
-| **🎥 Netflix Glassmorphic Design** | Cinematic dark purple aesthetic with Amazon Prime Video horizontal scrolling rows and responsive layout. |
+| **🤖 Content-Based ML Recommendations** | Calculates cosine similarity matrices across 6,000+ movies using actor, director, genre, and keyword vector spaces to deliver the **Top 10 most relevant** suggestions. |
+| **🧠 Hybrid Sentiment NLP Engine** | Analyzes audience reviews with **TF-IDF Vectorization + Multinomial Naive Bayes + Lexicon & Negation Phrase Tracking** to deliver `POSITIVE` vs `NEGATIVE` verdicts per review. |
+| **🏷️ AI Semantic Theme Extraction** | NLP algorithm parses movie overviews to auto-generate emotional tags (*e.g., `🧠 Mind-Bending`, `💥 High-Octane Action`, `🚀 Epic Sci-Fi`*). |
+| **👥 Dynamic Reviewer Personas** | Replaced generic "Audience Review" labels with dynamic reviewer names selected sequentially from a custom dictionary (e.g., Ram, Alex, Sarah) to create a realistic and personalized user review section. |
+| **🎭 Interactive 3D Quick View Modal** | Click any movie card for backdrop previews, ratings, overview, cast bio popups, and instant YouTube trailer playback. |
+| **🔥 Dynamic Discovery Sections** | Explore live **Mood-Based Picks** (*Happy, Sad, Scared, Chill, Romantic*), **Time-of-Day Picks** (*Morning, Afternoon, Evening, Night*), and **Genre Categories**. |
+| **⚡ Async FastAPI Backend** | Fully async ASGI server powered by **FastAPI + Uvicorn** — delivering sub-millisecond routing, automatic OpenAPI docs, and Pydantic-grade request validation. |
+| **🎥 Netflix Glassmorphic Design** | Cinematic dark purple aesthetic with Amazon Prime Video-style horizontal scrolling rows and fully responsive layout. |
 
 ## 🧠 Machine Learning & NLP Models Breakdown
 
@@ -84,65 +87,95 @@ The frontend incorporates interactive Bootstrap 4 & Glassmorphism modals for ric
 
 ```mermaid
 graph TD
-    UI["📱 CINEFLIX AI Frontend UI (Client Browser)"]
-    Search["🔍 Autocomplete Search Engine"]
-    Picks["🔥 Dynamic Picks (Trending / Mood / Time / Category)"]
-    QuickView["🎭 3D Preview Modal & YouTube Trailer Player"]
-    
-    Flask["⚡ Flask Backend Server (main.py)"]
-    TMDB["🌐 TMDB API v3 (Posters, Credits, Reviews)"]
-    
+    UI["📱 CINEFLIX AI Frontend (Browser)"]
+    Search["🔍 Autocomplete Search"]
+    Picks["🔥 Mood / Time / Category Picks"]
+    QuickView["🎭 3D Preview Modal + YouTube Player"]
+
+    FastAPI["⚡ FastAPI Backend (main.py · Uvicorn ASGI)"]
+    TMDB["🌐 TMDB API v3 (Posters · Credits · Reviews)"]
+    YouTube["🎬 YouTube Trailer API"]
+
     Cosine["📊 Cosine Similarity ML Engine"]
-    Dataset[("💾 main_data.csv - 6,000+ Movies")]
-    
+    Dataset[("💾 main_data.csv — 6,000+ Movies")]
+
     NLP["🧠 Hybrid Sentiment NLP Engine"]
-    Models[("📦 NLP Models - nlp_model.pkl & tranform.pkl")]
-    Badges["🏷️ POSITIVE / NEGATIVE Sentiment Badges"]
-    
+    NLPModels[("📦 nlp_model.pkl · tranform.pkl")]
+    Badges["🏷️ POSITIVE / NEGATIVE Badges"]
+
     Theme["✨ AI Semantic Theme Extractor"]
+    Docs["📄 Auto OpenAPI Docs (/docs · /redoc)"]
 
     UI --> Search
     UI --> Picks
     UI --> QuickView
-    
-    Search -->|"POST /similarity"| Flask
-    Picks -->|"GET /discover"| TMDB
-    
-    Flask --> Cosine
+
+    Search -->|"POST /similarity"| FastAPI
+    Picks -->|"POST /mood · /time_picks · /category"| FastAPI
+    QuickView -->|"GET Posters + Reviews"| TMDB
+    QuickView -->|"Trailer ID"| YouTube
+
+    FastAPI --> Cosine
     Cosine --> Dataset
-    Cosine -->|"Top 10 Recommendations"| UI
-    
-    Flask -->|"POST /analyze_sentiment"| NLP
-    TMDB -->|"Fetch Audience Reviews"| NLP
-    NLP --> Models
+    Cosine -->|"Top 10 Titles"| FastAPI
+
+    FastAPI -->|"POST /analyze_sentiment"| NLP
+    TMDB -->|"Audience Reviews"| NLP
+    NLP --> NLPModels
     NLP --> Badges --> UI
-    
-    Flask --> Theme -->|"Semantic Tags"| UI
+
+    FastAPI --> Theme -->|"Semantic Tags"| UI
+    FastAPI --> Docs
 ```
 
-### 📐 Text-Based Architecture Map
+### 📐 ASCII Architecture Map
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                         📱 CINEFLIX AI FRONTEND (UI)                             │
-│  [Autocomplete Search]    [Dynamic Picks (Mood/Time)]    [3D Quick View Modal]  │
-└──────────┬────────────────────────────┬────────────────────────────┬────────────┘
-           │                            │                            │
-           ▼                            ▼                            ▼
-┌──────────────────────┐    ┌──────────────────────┐    ┌─────────────────────────┐
-│ ⚡ Flask main.py      │    │ 🌐 TMDB API v3       │    │ 🎬 YouTube Trailer API  │
-│ (Backend Routing)    │    │ (Posters & Reviews)  │    │ (Media Playback)        │
-└──────────┬───────────┘    └──────────┬───────────┘    └─────────────────────────┘
-           │                           │
-           ├───────────────────────────┴─────────────────────────────┐
-           ▼                                                         ▼
-┌──────────────────────────────────────┐          ┌──────────────────────────────────────┐
-│ 📊 Cosine Similarity ML Engine       │          │ 🧠 Hybrid Sentiment NLP Engine       │
-│ • Reads 6,000+ movies metadata       │          │ • TF-IDF Vectorizer (tranform.pkl)   │
-│ • Calculates vector angles           │          │ • Naive Bayes (nlp_model.pkl)        │
-│ • Outputs top 10 recommended titles  │          │ • Lexicon & Negation Phrase Tracking │
-└──────────────────────────────────────┘          └──────────────────────────────────────┘
+│                         📱 CINEFLIX AI FRONTEND (Browser)                        │
+│  [Autocomplete Search]   [Mood/Time/Category Picks]   [3D Quick View Modal]     │
+└──────────┬──────────────────────────┬────────────────────────────┬──────────────┘
+           │                          │                            │
+           ▼                          ▼                            ▼
+┌──────────────────────────┐  ┌──────────────────┐  ┌─────────────────────────────┐
+│ ⚡ FastAPI main.py        │  │ 🌐 TMDB API v3   │  │ 🎬 YouTube Trailer API      │
+│ Uvicorn ASGI Server      │  │ (Posters/Reviews) │  │ (Embedded Playback)         │
+│ OpenAPI Docs at /docs    │  └──────────────────┘  └─────────────────────────────┘
+└──────────┬───────────────┘
+           │
+    ┌──────┴───────┐
+    ▼              ▼
+┌──────────────────────────────────┐  ┌──────────────────────────────────────────┐
+│ 📊 Cosine Similarity ML Engine   │  │ 🧠 Hybrid Sentiment NLP Engine           │
+│ • CountVectorizer → Matrix       │  │ • TF-IDF Vectorizer  (tranform.pkl)      │
+│ • Cosine Similarity computation  │  │ • Naive Bayes Classifier (nlp_model.pkl) │
+│ • Top 10 recommended titles      │  │ • Lexicon + Negation Phrase Tracking     │
+└──────────────────────────────────┘  └──────────────────────────────────────────┘
 ```
+
+---
+
+## ⚡ FastAPI Backend Deep Dive
+
+CINEFLIX AI's backend is built on **[FastAPI](https://fastapi.tiangolo.com/)** — a modern, high-performance Python web framework for building APIs with Python 3.9+ type hints. It runs on **Uvicorn**, an ASGI server built on `uvloop` and `httptools`.
+
+### Why FastAPI over Flask?
+
+| Feature | Flask (Old) | FastAPI (Current) ✅ |
+| :--- | :--- | :--- |
+| **Concurrency Model** | WSGI (synchronous) | ASGI (async/await — non-blocking I/O) |
+| **Performance** | ~1,000 req/s | ~3,000–10,000+ req/s |
+| **API Docs** | None (manual) | Auto-generated OpenAPI `/docs` & `/redoc` |
+| **Request Validation** | Manual / WTForms | Built-in via Python type hints & Pydantic |
+| **Form Data Handling** | `request.form` | `Form(...)` dependency injection |
+| **Template Rendering** | Jinja2 (Flask baked-in) | Jinja2 (via `Jinja2Templates`) |
+| **Production Server** | Gunicorn (WSGI) | Uvicorn (ASGI) |
+| **Type Safety** | ❌ None | ✅ Full type annotation support |
+
+### Interactive API Documentation
+Once the server is running, FastAPI auto-generates interactive docs:
+- **Swagger UI**: `http://127.0.0.1:5000/docs`
+- **ReDoc**: `http://127.0.0.1:5000/redoc`
 
 ---
 
@@ -162,12 +195,37 @@ Reviews are passed through a multi-tier NLP pipeline:
 2. **TF-IDF & Naive Bayes**: Vectorizes text into term-frequency matrices and evaluates posterior probability $P(Y \mid X)$.
 3. **Lexicon & Negation Phrase Tracking**: Detects contextual negative phrases (*"not a good movie"*, *"never figures out"*, *"fail to act"*) and positive intensifiers (*"spectacular"*, *"masterpiece"*, *"brilliant"*).
 
+### Sentiment Pipeline Flow
+```
+Raw Review Text
+      │
+      ▼
+  [Step 1] Preprocessing — strip URLs, markdown, emojis, normalize whitespace
+      │
+      ▼
+  [Step 2] TF-IDF Vectorizer (tranform.pkl) → Numerical Feature Matrix
+      │
+      ▼
+  [Step 3] Naive Bayes Classifier (nlp_model.pkl) → P(Positive | Text)
+      │
+      ▼
+  [Step 4] Lexicon Score Override (pos_words vs neg_words keyword counting)
+      │
+      ▼
+  [Step 5] Negation Phrase Boost ("not good", "never figures out", "fail to act")
+      │
+      ▼
+   VERDICT: "Good" ✅ or "Bad" ❌
+```
+
 ### 3. AI Semantic Theme Extractor
 Extracts emotional and narrative themes from plot overviews:
 - `🧠 Mind-Bending`: Time dilation, quantum mechanics, dream states
 - `💥 High-Octane Action`: Battles, missions, high stakes
 - `🚀 Epic Sci-Fi`: Galaxies, futuristic tech, alien encounters
 - `💖 Heartfelt Romance`: Relationships, passion, emotional bonds
+- `😱 Intense Thrills`: Horror, haunted, survival, nightmare
+- `✨ Magical Adventure`: Family, magic, kingdoms, animated journeys
 
 ---
 
@@ -187,10 +245,36 @@ Extracts emotional and narrative themes from plot overviews:
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Python 3.9+, Flask, Scikit-Learn, Pandas, NumPy, Pickle
-- **Machine Learning & NLP**: CountVectorizer, TF-IDF Vectorizer, Multinomial Naive Bayes, Cosine Similarity
-- **Frontend**: HTML5, Vanilla CSS3 (Glassmorphic Theme), JavaScript (ES6+), jQuery, Bootstrap 4
-- **External Data & Media**: The Movie Database (TMDB v3 API), YouTube Data API
+### Backend
+| Technology | Version | Purpose |
+| :--- | :--- | :--- |
+| **Python** | 3.9+ | Core language |
+| **FastAPI** | ≥ 0.100 | Async ASGI web framework |
+| **Uvicorn** | ≥ 0.23 | ASGI production server (replaces Gunicorn) |
+| **Jinja2** | ≥ 3.0 | Server-side HTML templating |
+| **python-multipart** | ≥ 0.0.7 | `multipart/form-data` parsing for `Form(...)` |
+
+### Machine Learning & NLP
+| Technology | Purpose |
+| :--- | :--- |
+| **Scikit-Learn** | `CountVectorizer`, `TfidfVectorizer`, `MultinomialNB`, `cosine_similarity` |
+| **NumPy** | Numerical matrix operations |
+| **Pandas** | CSV dataset loading & filtering |
+| **Pickle** | Serialization & loading of pre-trained `.pkl` model artifacts |
+
+### Frontend
+| Technology | Purpose |
+| :--- | :--- |
+| **HTML5 + Vanilla CSS3** | Structure & Glassmorphism styling |
+| **JavaScript ES6+** | Dynamic DOM, AJAX calls, UI logic |
+| **jQuery** | AJAX form submission & DOM traversal |
+| **Bootstrap 4** | Responsive grid, modal dialogs |
+
+### External APIs
+| API | Purpose |
+| :--- | :--- |
+| **TMDB v3** | Movie posters, cast info, credits, user reviews, trailer video IDs |
+| **YouTube Player API** | Embedded in-page trailer playback |
 
 ---
 
@@ -224,19 +308,29 @@ Extracts emotional and narrative themes from plot overviews:
    pip install -r requirements.txt
    ```
 
-4. **Set environment variables & run the app**:
+4. **Set your TMDB API Key and run**:
    ```bash
    # Windows PowerShell
-   $env:TMDB_API_KEY="YOUR_TMDB_API_KEY"
+   $env:TMDB_API_KEY="YOUR_TMDB_API_KEY_HERE"
    python main.py
 
    # Linux / macOS
-   export TMDB_API_KEY="YOUR_TMDB_API_KEY"
+   export TMDB_API_KEY="YOUR_TMDB_API_KEY_HERE"
    python main.py
    ```
 
 5. **Open in Browser**:
-   Navigate to `http://127.0.0.1:5000/`
+   ```
+   http://127.0.0.1:5000/
+   ```
+
+6. **Explore Auto API Docs** *(FastAPI bonus!)*:
+   ```
+   http://127.0.0.1:5000/docs      ← Swagger UI (interactive)
+   http://127.0.0.1:5000/redoc     ← ReDoc (clean reference)
+   ```
+
+> **Note**: On first launch, the cosine similarity matrix is computed in-memory from `main_data.csv`. This takes a few seconds — subsequent requests are instant.
 
 ---
 
@@ -244,21 +338,25 @@ Extracts emotional and narrative themes from plot overviews:
 
 ```
 Movie-Recommendation-System-with-Sentiment-Analysis/
-├── main.py                      # Core Flask Application & NLP Routing
-├── nlp_model.pkl                # Pre-trained Naive Bayes Classifier Model
-├── tranform.pkl                 # Pre-trained TF-IDF Vectorizer
-├── main_data.csv                # Processed Movie Dataset (6000+ titles)
-├── requirements.txt             # Python Package Dependencies
+│
+├── main.py                      # ⚡ Core FastAPI Application — all routes & NLP logic
+├── nlp_model.pkl                # 📦 Pre-trained Multinomial Naive Bayes Classifier
+├── tranform.pkl                 # 📦 Pre-trained TF-IDF Vectorizer
+├── main_data.csv                # 💾 Processed Movie Dataset (6,000+ titles)
+├── requirements.txt             # 📋 Python Package Dependencies
+├── Procfile                     # 🚀 Heroku deploy: uvicorn main:app
+│
 ├── static/
-│   ├── style.css                # CINEFLIX AI Glassmorphism & 3D CSS
-│   ├── recommend.js             # AJAX Logic & TMDB API Integrations
-│   ├── autocomplete.js          # Search Bar Autocomplete Listener
+│   ├── style.css                # 🎨 Glassmorphism & 3D Cinematic CSS
+│   ├── recommend.js             # 🔁 AJAX Logic & TMDB API Integrations
+│   ├── autocomplete.js          # 🔍 Search Bar Autocomplete
 │   └── images/
-│       ├── logo.png             # Custom 3D CINEFLIX AI Logo
-│       └── hero_3d.jpg          # Cinematic Hero Asset
+│       ├── logo.png             # 🎬 CINEFLIX AI Logo
+│       └── hero_3d.jpg          # 🖼️ Hero Section Background
+│
 └── templates/
-    ├── home.html                # Main Dashboard View
-    └── recommend.html           # AJAX Recommendation Fragment
+    ├── home.html                # 🏠 Main Dashboard (Mood / Time / Category Picks)
+    └── recommend.html           # 🎬 Recommendation Result Page (Cast + Reviews + NLP Tags)
 ```
 
 ---
@@ -279,8 +377,10 @@ Movie-Recommendation-System-with-Sentiment-Analysis/
 ## 📄 License & Acknowledgments
 
 - Released under the [MIT License](LICENSE).
-- **Data Source**: Powered by [The Movie Database (TMDB)](https://www.themoviedb.org/).
+- **Data Source**: Powered by [The Movie Database (TMDB)](https://www.themoviedb.org/) — this product uses the TMDB API but is not endorsed or certified by TMDB.
 - **Original Dataset**: Kaggle IMDB 5000 Movie Dataset & Wikipedia Film Catalog.
+- **ML Framework**: [scikit-learn](https://scikit-learn.org/) for Naive Bayes & Cosine Similarity.
+- **Backend Framework**: [FastAPI](https://fastapi.tiangolo.com/) by Sebastián Ramírez.
 
 <div align="center">
   <sub>Built with ❤️ for Film Enthusiasts & AI Engineers.</sub>

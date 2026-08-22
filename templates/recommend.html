@@ -142,6 +142,7 @@
 
   <!-- Clean Vertical Comment Section List -->
   <div class="comment-list">
+    {% set reviewer_names = ["Alex", "Ram", "Sarah", "John", "Jessica", "David", "Emily", "Michael", "Sophia", "Daniel", "Emma", "Olivia", "Liam", "Noah", "James", "Priya", "Rahul", "Anya", "Vikram", "Karan"] %}
     {% for review, status in reviews.items() if not reviews.hidden %}
     <div class="comment-item">
       <div class="comment-avatar">
@@ -149,7 +150,7 @@
       </div>
       <div class="comment-body-wrap">
         <div class="comment-meta">
-          <span class="comment-author">Audience Review</span>
+          <span class="comment-author">{{ reviewer_names[loop.index0 % reviewer_names|length] }}</span>
           {% if status == 'Good' %}
           <span class="verdict-pill verdict-positive">POSITIVE</span>
           {% else %}

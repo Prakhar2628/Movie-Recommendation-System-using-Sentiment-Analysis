@@ -1,214 +1,241 @@
-from email.mime import application
-import numpy as np
-import pandas as pd
-from flask import Flask, render_template, request, send_from_directory, jsonify
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-import pickle
-import requests
-from bs4 import BeautifulSoup
+import json as _json
 import os
 import random
+import re
 
-# Load the NLP model and vectorizer from disk
+import numpy as np
+import pandas as pd
+import pickle
+
+from fastapi import FastAPI, Form, Request
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# ─── NLP Model Loading ────────────────────────────────────────────────────────
 try:
-    clf = pickle.load(open('nlp_model.pkl', 'rb'))
-    vectorizer = pickle.load(open('tranform.pkl', 'rb'))
+    clf = pickle.load(open("nlp_model.pkl", "rb"))
+    vectorizer = pickle.load(open("tranform.pkl", "rb"))
 except Exception as e:
     print("Error loading model/vectorizer:", e)
     clf = None
     vectorizer = None
 
-# Global variables for data and similarity
+# ─── Global dataset & similarity matrix ───────────────────────────────────────
 data = None
 similarity = None
 
-# Mood -> Genre mapping
+# ─── Genre Maps ───────────────────────────────────────────────────────────────
 MOOD_GENRE_MAP = {
-    'happy':       ['Comedy', 'Animation', 'Family', 'Musical'],
-    'sad':         ['Drama', 'Romance', 'Music'],
-    'excited':     ['Action', 'Adventure', 'Sci-Fi', 'Fantasy'],
-    'scared':      ['Horror', 'Thriller', 'Mystery'],
-    'romantic':    ['Romance', 'Drama', 'Musical'],
-    'chill':       ['Comedy', 'Animation', 'Family', 'Documentary'],
-    'angry':       ['Action', 'Crime', 'Thriller', 'War'],
-    'curious':     ['Mystery', 'Documentary', 'Biography', 'History', 'Sci-Fi'],
-    'nostalgic':   ['Drama', 'Biography', 'History', 'War', 'Family'],
-    'adventurous': ['Adventure', 'Action', 'Fantasy', 'Sci-Fi'],
+    "happy":       ["Comedy", "Animation", "Family", "Musical"],
+    "sad":         ["Drama", "Romance", "Music"],
+    "excited":     ["Action", "Adventure", "Sci-Fi", "Fantasy"],
+    "scared":      ["Horror", "Thriller", "Mystery"],
+    "romantic":    ["Romance", "Drama", "Musical"],
+    "chill":       ["Comedy", "Animation", "Family", "Documentary"],
+    "angry":       ["Action", "Crime", "Thriller", "War"],
+    "curious":     ["Mystery", "Documentary", "Biography", "History", "Sci-Fi"],
+    "nostalgic":   ["Drama", "Biography", "History", "War", "Family"],
+    "adventurous": ["Adventure", "Action", "Fantasy", "Sci-Fi"],
 }
 
-# Time-of-day -> Genre mapping
 TIME_GENRE_MAP = {
-    'morning':   ['Comedy', 'Animation', 'Family', 'Documentary'],
-    'afternoon': ['Action', 'Adventure', 'Sci-Fi'],
-    'evening':   ['Drama', 'Romance', 'Thriller'],
-    'night':     ['Horror', 'Mystery', 'Thriller', 'Crime'],
+    "morning":   ["Comedy", "Animation", "Family", "Documentary"],
+    "afternoon": ["Action", "Adventure", "Sci-Fi"],
+    "evening":   ["Drama", "Romance", "Thriller"],
+    "night":     ["Horror", "Mystery", "Thriller", "Crime"],
 }
 
+# ─── Helpers ──────────────────────────────────────────────────────────────────
 def create_similarity():
     global data, similarity
-    data = pd.read_csv('main_data.csv')
+    data = pd.read_csv("main_data.csv")
     cv = CountVectorizer()
-    count_matrix = cv.fit_transform(data['comb'])
+    count_matrix = cv.fit_transform(data["comb"])
     similarity = cosine_similarity(count_matrix)
 
-def rcmd(m):
+
+def rcmd(m: str):
     global data, similarity
     m = m.lower()
     if data is None or similarity is None:
         create_similarity()
-    if m not in data['movie_title'].unique():
-        return 'Sorry! The movie you requested is not in our database. Please check the spelling or try with some other movies'
-    else:
-        i = data.loc[data['movie_title'] == m].index[0]
-        lst = list(enumerate(similarity[i]))
-        lst = sorted(lst, key=lambda x: x[1], reverse=True)
-        lst = lst[1:11]
-        l = [data['movie_title'][a] for a, _ in lst]
-        return l
+    if m not in data["movie_title"].unique():
+        return "Sorry! The movie you requested is not in our database. Please check the spelling or try with some other movies"
+    i = data.loc[data["movie_title"] == m].index[0]
+    lst = sorted(enumerate(similarity[i]), key=lambda x: x[1], reverse=True)[1:11]
+    return [data["movie_title"][a] for a, _ in lst]
+
 
 def get_movies_by_genres(genre_list, count=20):
-    """Return a random sample of movies matching any of the given genres."""
     global data
     if data is None:
         create_similarity()
-    genre_pattern = '|'.join(genre_list)
-    matched = data[data['genres'].str.contains(genre_pattern, case=False, na=False)]
-    titles = matched['movie_title'].str.title().tolist()
+    genre_pattern = "|".join(genre_list)
+    matched = data[data["genres"].str.contains(genre_pattern, case=False, na=False)]
+    titles = matched["movie_title"].str.title().tolist()
     random.shuffle(titles)
     return titles[:count]
 
-def convert_to_list(my_list):
-    # Handles empty or malformed input
+
+def convert_to_list(my_list: str):
     if not my_list or my_list == "[]":
         return []
     my_list = my_list.split('","')
-    my_list[0] = my_list[0].replace('["', '')
-    my_list[-1] = my_list[-1].replace('"]', '')
+    my_list[0] = my_list[0].replace('["', "")
+    my_list[-1] = my_list[-1].replace('"]', "")
     return my_list
+
 
 def get_suggestions():
     try:
-        df = pd.read_csv('main_data.csv')
-        return list(df['movie_title'].str.capitalize())
+        df = pd.read_csv("main_data.csv")
+        return list(df["movie_title"].str.capitalize())
     except Exception as e:
         print("Error loading suggestions:", e)
         return []
 
-app = Flask(__name__)
-# Read TMDB API key from environment (set TMDB_API_KEY) so it's available to templates
-app.config['TMDB_API_KEY'] = os.environ.get('TMDB_API_KEY', '')
 
-# Serve favicon
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                              'favicon.ico', mimetype='image/vnd.microsoft.icon')
+def extract_nlp_themes(overview: str, genres: str = ""):
+    text = (overview + " " + genres).lower()
+    themes = []
+    mapping = [
+        (["mind", "reality", "dream", "subconscious", "time", "space", "quantum"], "🧠 Mind-Bending"),
+        (["action", "fight", "battle", "war", "explosion", "mission", "hero", "agent"], "💥 High-Octane Action"),
+        (["dark", "murder", "killer", "crime", "investigation", "detective", "mystery"], "🕵️ Dark Mystery"),
+        (["love", "romance", "relationship", "heart", "couple", "passion"], "💖 Heartfelt Romance"),
+        (["laugh", "funny", "comedy", "humor", "hilarious", "friends"], "😂 Feel-Good Humor"),
+        (["space", "alien", "future", "galaxy", "planet", "robot", "sci-fi"], "🚀 Epic Sci-Fi"),
+        (["scary", "ghost", "demon", "horror", "haunted", "nightmare", "survival"], "😱 Intense Thrills"),
+        (["family", "magic", "kingdom", "dragon", "animated", "journey"], "✨ Magical Adventure"),
+    ]
+    for keywords, tag in mapping:
+        if any(w in text for w in keywords):
+            themes.append(tag)
+    if not themes:
+        themes = ["🎬 Cinematic Storytelling", "🌟 Critically Acclaimed"]
+    return themes[:4]
 
-@app.route("/")
-@app.route("/home")
-def home():
+
+# ─── FastAPI App ───────────────────────────────────────────────────────────────
+TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "")
+
+app = FastAPI(title="CINEFLIX AI", description="Movie Recommendation & Sentiment Analysis Engine")
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+from jinja2 import pass_context
+
+templates = Jinja2Templates(directory="templates")
+
+@pass_context
+def custom_url_for(context: dict, name: str, /, **path_params: any):
+    request = context["request"]
+    if name == "static" and "filename" in path_params:
+        path_params["path"] = path_params.pop("filename")
+    return request.url_for(name, **path_params)
+
+templates.env.globals["url_for"] = custom_url_for
+
+
+# ─── Routes ───────────────────────────────────────────────────────────────────
+
+@app.get("/", response_class=HTMLResponse)
+@app.get("/home", response_class=HTMLResponse)
+async def home(request: Request):
     suggestions = get_suggestions()
-    return render_template('home.html', suggestions=suggestions, tmdb_api_key=app.config.get('TMDB_API_KEY'))
+    return templates.TemplateResponse(
+        request=request,
+        name="home.html",
+        context={"suggestions": suggestions, "tmdb_api_key": TMDB_API_KEY},
+    )
 
-@app.route("/similarity", methods=["POST"])
-def similarity_route():
-    movie = request.form['name']
-    rc = rcmd(movie)
+
+@app.post("/similarity", response_class=PlainTextResponse)
+async def similarity_route(name: str = Form(...)):
+    rc = rcmd(name)
     if isinstance(rc, str):
         return rc
-    else:
-        m_str = "---".join(rc)
-        return m_str
+    return "---".join(rc)
 
-# Mood-based recommendations (returns JSON list of movie titles)
-@app.route("/mood", methods=["POST"])
-def mood_route():
-    mood = request.form.get('mood', 'happy').lower()
-    genres = MOOD_GENRE_MAP.get(mood, ['Drama', 'Comedy'])
+
+@app.post("/mood")
+async def mood_route(mood: str = Form(default="happy")):
+    mood = mood.lower()
+    genres = MOOD_GENRE_MAP.get(mood, ["Drama", "Comedy"])
     movies = get_movies_by_genres(genres, count=20)
-    return jsonify({'mood': mood, 'genres': genres, 'movies': movies})
+    return JSONResponse({"mood": mood, "genres": genres, "movies": movies})
 
-# Time-based recommendations (returns JSON list of movie titles)
-@app.route("/time_picks", methods=["POST"])
-def time_picks():
-    period = request.form.get('period', 'evening').lower()
-    genres = TIME_GENRE_MAP.get(period, ['Drama'])
+
+@app.post("/time_picks")
+async def time_picks(period: str = Form(default="evening")):
+    period = period.lower()
+    genres = TIME_GENRE_MAP.get(period, ["Drama"])
     movies = get_movies_by_genres(genres, count=20)
-    return jsonify({'period': period, 'genres': genres, 'movies': movies})
+    return JSONResponse({"period": period, "genres": genres, "movies": movies})
 
-# Category-based recommendations (returns JSON list of movie titles)
-@app.route("/category", methods=["POST"])
-def category_route():
-    genre = request.form.get('genre', 'Action')
+
+@app.post("/category")
+async def category_route(genre: str = Form(default="Action")):
     movies = get_movies_by_genres([genre], count=30)
-    return jsonify({'genre': genre, 'movies': movies})
+    return JSONResponse({"genre": genre, "movies": movies})
 
-# Advanced Hybrid NLP Sentiment Analysis Endpoint
-@app.route("/analyze_sentiment", methods=["POST"])
-def analyze_sentiment():
-    import json as _json
-    import re
-    reviews_json = request.form.get('reviews', '[]')
-    movie_title = request.form.get('title', 'This movie')
-    overview = request.form.get('overview', '')
-    
+
+@app.post("/analyze_sentiment")
+async def analyze_sentiment(
+    reviews: str = Form(default="[]"),
+    title: str = Form(default="This movie"),
+    overview: str = Form(default=""),
+):
     try:
-        reviews = _json.loads(reviews_json)
+        review_list = _json.loads(reviews)
     except Exception:
-        reviews = []
-        
-    # If no reviews exist for the movie on TMDB/IMDB, synthesize reviews from overview/rating context
-    if not reviews or len(reviews) == 0:
-        reviews = [
-            f"An absolute masterpiece! {movie_title} delivers outstanding performances and brilliant direction throughout.",
-            f"Visually impressive and deeply engaging. The plot of {movie_title} holds your attention from start to finish.",
+        review_list = []
+
+    if not review_list:
+        review_list = [
+            f"An absolute masterpiece! {title} delivers outstanding performances and brilliant direction throughout.",
+            f"Visually impressive and deeply engaging. The plot of {title} holds your attention from start to finish.",
             f"Solid storytelling and great character development, though a few pacing choices felt slightly drawn out.",
-            f"A fun and captivating watch! Really enjoyed how {movie_title} brought its central themes to life.",
-            f"Felt a bit formulaic in places, but overall the cinematography and cast make it worthwhile."
+            f"A fun and captivating watch! Really enjoyed how {title} brought its central themes to life.",
+            f"Felt a bit formulaic in places, but overall the cinematography and cast make it worthwhile.",
         ]
-        
+
     pos_words = {
-        'great', 'good', 'masterpiece', 'brilliant', 'solid', 'fun', 'impressive', 'enjoyed',
-        'fantastic', 'amazing', 'awesome', 'stylish', 'excellent', 'powerhouse', 'beautifully',
-        'striking', 'love', 'loved', 'wonderful', 'engaging', 'thrilling', 'captivating', 'favorite',
-        'best', 'top-notch', 'stellar', 'perfect', 'superb', 'highlight', 'recommend', 'recommended',
-        'spectacular', 'entertaining', 'phenomenal', 'cool', 'action', 'spider-man', 'spiderman', 'hero'
+        "great", "good", "masterpiece", "brilliant", "solid", "fun", "impressive", "enjoyed",
+        "fantastic", "amazing", "awesome", "stylish", "excellent", "powerhouse", "beautifully",
+        "striking", "love", "loved", "wonderful", "engaging", "thrilling", "captivating", "favorite",
+        "best", "top-notch", "stellar", "perfect", "superb", "highlight", "recommend", "recommended",
+        "spectacular", "entertaining", "phenomenal", "cool", "action", "spider-man", "spiderman", "hero",
     }
-    
     neg_words = {
-        'frustrating', 'mess', 'bad', 'terrible', 'horrible', 'waste', 'disappointing', 'poor',
-        'boring', 'dull', 'pretentious', 'paper-thin', 'unfocused', 'formulaic', 'worst', 'cliché',
-        'lacks', 'flawed', 'weak', 'struggles', 'overrated', 'cringe', 'nonsense', 'unfortunately', 'fail'
+        "frustrating", "mess", "bad", "terrible", "horrible", "waste", "disappointing", "poor",
+        "boring", "dull", "pretentious", "paper-thin", "unfocused", "formulaic", "worst", "cliché",
+        "lacks", "flawed", "weak", "struggles", "overrated", "cringe", "nonsense", "unfortunately", "fail",
     }
-    
-    neg_phrases = ['not a good', 'not good', 'not positive', 'never figures out', 'was not', 'one dimensional', 'fail to act', 'waste of time']
+    neg_phrases = ["not a good", "not good", "not positive", "never figures out", "was not", "one dimensional", "fail to act", "waste of time"]
 
     result = {}
-    for review_text in reviews:
+    for review_text in review_list:
         if not isinstance(review_text, str) or not review_text.strip():
             continue
-        
-        # Clean text formatting: remove markdown, URLs, emojis, and double spaces
-        clean_text = re.sub(r'https?://\S+', '', review_text)
-        clean_text = re.sub(r'[\*\_\`\#\~\[\]\(\)\✅\❌]', '', clean_text)
-        clean_text = re.sub(r'\s+', ' ', clean_text).strip()
-        
+        clean_text = re.sub(r"https?://\S+", "", review_text)
+        clean_text = re.sub(r"[\*\_\`\#\~\[\]\(\)\✅\❌]", "", clean_text)
+        clean_text = re.sub(r"\s+", " ", clean_text).strip()
         if not clean_text:
             continue
 
-        key = clean_text[:280] + ('...' if len(clean_text) > 280 else '')
+        key = clean_text[:280] + ("..." if len(clean_text) > 280 else "")
         text_lower = clean_text.lower()
 
-        # Hybrid NLP Analysis: Lexicon & Negation Phrase Matching + Naive Bayes Model
         pos_score = sum(1 for w in pos_words if w in text_lower)
         neg_score = sum(1 for w in neg_words if w in text_lower)
-        
         for phrase in neg_phrases:
             if phrase in text_lower:
                 neg_score += 2
 
-        # ML Model check if available
         ml_pred = None
         if clf and vectorizer:
             try:
@@ -218,107 +245,101 @@ def analyze_sentiment():
                 ml_pred = None
 
         if neg_score > pos_score:
-            verdict = 'Bad'
+            verdict = "Bad"
         elif pos_score > neg_score:
-            verdict = 'Good'
+            verdict = "Good"
         elif ml_pred is not None:
-            verdict = 'Good' if ml_pred == 1 else 'Bad'
+            verdict = "Good" if ml_pred == 1 else "Bad"
         else:
-            verdict = 'Good'
+            verdict = "Good"
 
         result[key] = verdict
-            
-    return jsonify(result)
 
-def extract_nlp_themes(overview, genres=''):
-    import re
-    text = (overview + ' ' + genres).lower()
-    themes = []
-    
-    mapping = [
-        (['mind', 'reality', 'dream', 'subconscious', 'time', 'space', 'quantum'], '🧠 Mind-Bending'),
-        (['action', 'fight', 'battle', 'war', 'explosion', 'mission', 'hero', 'agent'], '💥 High-Octane Action'),
-        (['dark', 'murder', 'killer', 'crime', 'investigation', 'detective', 'mystery'], '🕵️ Dark Mystery'),
-        (['love', 'romance', 'relationship', 'heart', 'couple', 'passion'], '💖 Heartfelt Romance'),
-        (['laugh', 'funny', 'comedy', 'humor', 'hilarious', 'friends'], '😂 Feel-Good Humor'),
-        (['space', 'alien', 'future', 'galaxy', 'planet', 'robot', 'sci-fi'], '🚀 Epic Sci-Fi'),
-        (['scary', 'ghost', 'demon', 'horror', 'haunted', 'nightmare', 'survival'], '😱 Intense Thrills'),
-        (['family', 'magic', 'kingdom', 'dragon', 'animated', 'journey'], '✨ Magical Adventure'),
-    ]
-    
-    for keywords, tag in mapping:
-        if any(w in text for w in keywords):
-            themes.append(tag)
-            
-    if not themes:
-        themes = ['🎬 Cinematic Storytelling', '🌟 Critically Acclaimed']
-        
-    return themes[:4]
+    return JSONResponse(result)
 
-@app.route("/recommend", methods=["POST"])
-def recommend():
-    # Get data from AJAX request
-    title = request.form.get('title', '')
-    cast_ids = request.form.get('cast_ids', '')
-    cast_names = request.form.get('cast_names', '')
-    cast_chars = request.form.get('cast_chars', '')
-    cast_bdays = request.form.get('cast_bdays', '')
-    cast_bios = request.form.get('cast_bios', '')
-    cast_places = request.form.get('cast_places', '')
-    cast_profiles = request.form.get('cast_profiles', '')
-    imdb_id = request.form.get('imdb_id', '')
-    poster = request.form.get('poster', '')
-    genres = request.form.get('genres', '')
-    overview = request.form.get('overview', '')
-    vote_average = request.form.get('rating', '')
-    vote_count = request.form.get('vote_count', '')
-    release_date = request.form.get('release_date', '')
-    runtime = request.form.get('runtime', '')
-    status = request.form.get('status', '')
-    rec_movies = request.form.get('rec_movies', '')
-    rec_posters = request.form.get('rec_posters', '')
 
-    # Convert string to list
-    rec_movies = convert_to_list(rec_movies)
-    rec_posters = convert_to_list(rec_posters)
-    cast_names = convert_to_list(cast_names)
-    cast_chars = convert_to_list(cast_chars)
-    cast_profiles = convert_to_list(cast_profiles)
-    cast_bdays = convert_to_list(cast_bdays)
-    cast_bios = convert_to_list(cast_bios)
-    cast_places = convert_to_list(cast_places)
+@app.post("/recommend", response_class=HTMLResponse)
+async def recommend(
+    request: Request,
+    title: str = Form(default=""),
+    cast_ids: str = Form(default=""),
+    cast_names: str = Form(default="[]"),
+    cast_chars: str = Form(default="[]"),
+    cast_bdays: str = Form(default="[]"),
+    cast_bios: str = Form(default="[]"),
+    cast_places: str = Form(default="[]"),
+    cast_profiles: str = Form(default="[]"),
+    imdb_id: str = Form(default=""),
+    poster: str = Form(default=""),
+    genres: str = Form(default=""),
+    overview: str = Form(default=""),
+    rating: str = Form(default=""),
+    vote_count: str = Form(default=""),
+    release_date: str = Form(default=""),
+    runtime: str = Form(default=""),
+    status: str = Form(default=""),
+    rec_movies: str = Form(default="[]"),
+    rec_posters: str = Form(default="[]"),
+    analyzed_reviews: str = Form(default="{}"),
+):
+    rec_movies_list   = convert_to_list(rec_movies)
+    rec_posters_list  = convert_to_list(rec_posters)
+    cast_names_list   = convert_to_list(cast_names)
+    cast_chars_list   = convert_to_list(cast_chars)
+    cast_profiles_list = convert_to_list(cast_profiles)
+    cast_bdays_list   = convert_to_list(cast_bdays)
+    cast_bios_list    = convert_to_list(cast_bios)
+    cast_places_list  = convert_to_list(cast_places)
 
-    # Convert cast_ids string to list
-    cast_ids = cast_ids.strip('[]').split(',') if cast_ids else []
-    cast_ids = [c.strip().replace("'", "").replace('"', '') for c in cast_ids]
+    cast_ids_list = [c.strip().replace("'", "").replace('"', "")
+                     for c in cast_ids.strip("[]").split(",")] if cast_ids else []
 
-    # Clean up bios
-    for i in range(len(cast_bios)):
-        cast_bios[i] = cast_bios[i].replace(r'\n', '\n').replace(r'\"', '\"')
+    for i in range(len(cast_bios_list)):
+        cast_bios_list[i] = cast_bios_list[i].replace(r"\n", "\n").replace(r'\"', '"')
 
-    # Combine lists into dictionaries
-    movie_cards = {rec_posters[i]: rec_movies[i] for i in range(len(rec_posters))}
-    casts = {cast_names[i]: [cast_ids[i], cast_chars[i], cast_profiles[i]] for i in range(len(cast_profiles))}
-    cast_details = {cast_names[i]: [cast_ids[i], cast_profiles[i], cast_bdays[i], cast_places[i], cast_bios[i]] for i in range(len(cast_places))}
+    movie_cards  = {rec_posters_list[i]: rec_movies_list[i]  for i in range(len(rec_posters_list))}
+    casts        = {cast_names_list[i]:  [cast_ids_list[i] if i < len(cast_ids_list) else "",
+                                           cast_chars_list[i] if i < len(cast_chars_list) else "",
+                                           cast_profiles_list[i]]
+                    for i in range(len(cast_profiles_list))}
+    cast_details = {cast_names_list[i]:  [cast_ids_list[i]    if i < len(cast_ids_list) else "",
+                                           cast_profiles_list[i],
+                                           cast_bdays_list[i]  if i < len(cast_bdays_list) else "",
+                                           cast_places_list[i] if i < len(cast_places_list) else "",
+                                           cast_bios_list[i]   if i < len(cast_bios_list) else ""]
+                    for i in range(len(cast_places_list))}
 
-    # Use pre-analyzed reviews from TMDB (sent by JS)
-    import json as _json
-    movie_reviews = {}
-    analyzed_reviews_json = request.form.get('analyzed_reviews', '{}')
     try:
-        movie_reviews = _json.loads(analyzed_reviews_json)
+        movie_reviews = _json.loads(analyzed_reviews)
     except Exception:
         movie_reviews = {}
 
-    # Extract NLP Semantic Themes from Overview
     nlp_themes = extract_nlp_themes(overview, genres)
 
-    return render_template('recommend.html',
-        title=title, poster=poster, overview=overview, vote_average=vote_average,
-        vote_count=vote_count, release_date=release_date, runtime=runtime, status=status, genres=genres,
-        movie_cards=movie_cards, reviews=movie_reviews, casts=casts, cast_details=cast_details,
-        nlp_themes=nlp_themes, tmdb_api_key=app.config.get('TMDB_API_KEY')
+    return templates.TemplateResponse(
+        request=request,
+        name="recommend.html",
+        context={
+            "title": title,
+            "poster": poster,
+            "overview": overview,
+            "vote_average": rating,
+            "vote_count": vote_count,
+            "release_date": release_date,
+            "runtime": runtime,
+            "status": status,
+            "genres": genres,
+            "movie_cards": movie_cards,
+            "reviews": movie_reviews,
+            "casts": casts,
+            "cast_details": cast_details,
+            "nlp_themes": nlp_themes,
+            "tmdb_api_key": TMDB_API_KEY,
+        },
     )
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
+# ─── Entry Point ───────────────────────────────────────────────────────────────
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="127.0.0.1", port=5000, reload=True)
