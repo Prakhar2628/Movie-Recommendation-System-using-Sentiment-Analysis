@@ -84,31 +84,64 @@ The frontend incorporates interactive Bootstrap 4 & Glassmorphism modals for ric
 
 ```mermaid
 graph TD
-    classDef client fill:#1e1035,stroke:#8c52ff,stroke-width:2px,color:#fff;
-    classDef server fill:#27124d,stroke:#d946ef,stroke-width:2px,color:#fff;
-    classDef model fill:#120924,stroke:#3b82f6,stroke-width:2px,color:#fff;
-    classDef external fill:#0f172a,stroke:#06b6d4,stroke-width:2px,color:#fff;
-
-    A["📱 CINEFLIX AI Frontend UI\n(Client Browser & 3D Glassmorphism)"] ::: client
+    UI["📱 CINEFLIX AI Frontend UI (Client Browser)"]
+    Search["🔍 Autocomplete Search Engine"]
+    Picks["🔥 Dynamic Picks (Trending / Mood / Time / Category)"]
+    QuickView["🎭 3D Preview Modal & YouTube Trailer Player"]
     
-    A -->|"1. Search Title"| B["🔍 Autocomplete Engine"] ::: client
-    A -->|"2. Click Discovery"| C["🔥 Dynamic Picks\n(Trending / Mood / Time / Category)"] ::: client
-    A -->|"3. Quick View Modal"| D["🎭 3D Preview & YouTube Trailer Player"] ::: client
-
-    B -->|"POST /similarity"| E["⚡ Flask Backend Server\n(main.py)"] ::: server
-    C -->|"GET /discover"| F["🌐 TMDB API v3\n(Posters, Credits, Reviews)"] ::: external
-
-    E -->|"Compute Vector Distance"| G["📊 Cosine Similarity Engine"] ::: model
-    G -->|"Feature Vectors"| H[("💾 main_data.csv\n6,000+ Indexed Movies")] ::: model
-    G -->|"Top 10 Recommendations"| A
-
-    E -->|"POST /analyze_sentiment"| I["🧠 Hybrid Sentiment NLP Engine"] ::: model
-    F -->|"Fetch Audience Reviews"| I
-    I -->|"TF-IDF & Naive Bayes"| J[("📦 NLP Models\nnlp_model.pkl & tranform.pkl")] ::: model
-    I -->|"Return Badges"| K["🏷️ POSITIVE / NEGATIVE Sentiment Badges"] ::: client
+    Flask["⚡ Flask Backend Server (main.py)"]
+    TMDB["🌐 TMDB API v3 (Posters, Credits, Reviews)"]
     
-    E -->|"Extract Plot Semantics"| L["✨ AI Semantic Theme Extractor"] ::: model
-    L -->|"Tag Themes"| A
+    Cosine["📊 Cosine Similarity ML Engine"]
+    Dataset[("💾 main_data.csv - 6,000+ Movies")]
+    
+    NLP["🧠 Hybrid Sentiment NLP Engine"]
+    Models[("📦 NLP Models - nlp_model.pkl & tranform.pkl")]
+    Badges["🏷️ POSITIVE / NEGATIVE Sentiment Badges"]
+    
+    Theme["✨ AI Semantic Theme Extractor"]
+
+    UI --> Search
+    UI --> Picks
+    UI --> QuickView
+    
+    Search -->|"POST /similarity"| Flask
+    Picks -->|"GET /discover"| TMDB
+    
+    Flask --> Cosine
+    Cosine --> Dataset
+    Cosine -->|"Top 10 Recommendations"| UI
+    
+    Flask -->|"POST /analyze_sentiment"| NLP
+    TMDB -->|"Fetch Audience Reviews"| NLP
+    NLP --> Models
+    NLP --> Badges --> UI
+    
+    Flask --> Theme -->|"Semantic Tags"| UI
+```
+
+### 📐 Text-Based Architecture Map
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                         📱 CINEFLIX AI FRONTEND (UI)                             │
+│  [Autocomplete Search]    [Dynamic Picks (Mood/Time)]    [3D Quick View Modal]  │
+└──────────┬────────────────────────────┬────────────────────────────┬────────────┘
+           │                            │                            │
+           ▼                            ▼                            ▼
+┌──────────────────────┐    ┌──────────────────────┐    ┌─────────────────────────┐
+│ ⚡ Flask main.py      │    │ 🌐 TMDB API v3       │    │ 🎬 YouTube Trailer API  │
+│ (Backend Routing)    │    │ (Posters & Reviews)  │    │ (Media Playback)        │
+└──────────┬───────────┘    └──────────┬───────────┘    └─────────────────────────┘
+           │                           │
+           ├───────────────────────────┴─────────────────────────────┐
+           ▼                                                         ▼
+┌──────────────────────────────────────┐          ┌──────────────────────────────────────┐
+│ 📊 Cosine Similarity ML Engine       │          │ 🧠 Hybrid Sentiment NLP Engine       │
+│ • Reads 6,000+ movies metadata       │          │ • TF-IDF Vectorizer (tranform.pkl)   │
+│ • Calculates vector angles           │          │ • Naive Bayes (nlp_model.pkl)        │
+│ • Outputs top 10 recommended titles  │          │ • Lexicon & Negation Phrase Tracking │
+└──────────────────────────────────────┘          └──────────────────────────────────────┘
 ```
 
 ---
