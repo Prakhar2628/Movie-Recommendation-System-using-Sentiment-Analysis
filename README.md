@@ -305,18 +305,21 @@ Extracts emotional and narrative themes from plot overviews:
 
 3. **Install dependencies**:
    ```bash
-   pip install -r requirements.txt
+   pip install -r backend/requirements.txt
    ```
 
-4. **Set your TMDB API Key and run**:
+4. **Set your TMDB API Key and run the FastAPI server**:
    ```bash
+   # Navigate into the backend directory
+   cd backend
+
    # Windows PowerShell
    $env:TMDB_API_KEY="YOUR_TMDB_API_KEY_HERE"
-   python main.py
+   uvicorn app.main:app --host 127.0.0.1 --port 5000 --reload
 
    # Linux / macOS
    export TMDB_API_KEY="YOUR_TMDB_API_KEY_HERE"
-   python main.py
+   uvicorn app.main:app --host 127.0.0.1 --port 5000 --reload
    ```
 
 5. **Open in Browser**:
@@ -339,24 +342,51 @@ Extracts emotional and narrative themes from plot overviews:
 ```
 Movie-Recommendation-System-with-Sentiment-Analysis/
 │
-├── main.py                      # ⚡ Core FastAPI Application — all routes & NLP logic
-├── nlp_model.pkl                # 📦 Pre-trained Multinomial Naive Bayes Classifier
-├── tranform.pkl                 # 📦 Pre-trained TF-IDF Vectorizer
-├── main_data.csv                # 💾 Processed Movie Dataset (6,000+ titles)
-├── requirements.txt             # 📋 Python Package Dependencies
-├── Procfile                     # 🚀 Heroku deploy: uvicorn main:app
+├── Procfile                     # 🚀 Heroku deploy: uvicorn app.main:app
+├── README.md
 │
-├── static/
-│   ├── style.css                # 🎨 Glassmorphism & 3D Cinematic CSS
-│   ├── recommend.js             # 🔁 AJAX Logic & TMDB API Integrations
-│   ├── autocomplete.js          # 🔍 Search Bar Autocomplete
-│   └── images/
-│       ├── logo.png             # 🎬 CINEFLIX AI Logo
-│       └── hero_3d.jpg          # 🖼️ Hero Section Background
-│
-└── templates/
-    ├── home.html                # 🏠 Main Dashboard (Mood / Time / Category Picks)
-    └── recommend.html           # 🎬 Recommendation Result Page (Cast + Reviews + NLP Tags)
+└── backend/                     # ⚡ FastAPI Application Root
+    ├── requirements.txt         # 📋 Python Package Dependencies
+    ├── .env.example             # 🔑 Environment variable template
+    │
+    ├── app/                     # 🏗️ Application Package
+    │   ├── main.py              # 🚀 FastAPI app factory — mounts static & includes routers
+    │   │
+    │   ├── core/
+    │   │   └── config.py        # ⚙️ Settings: paths, API keys, host/port
+    │   │
+    │   ├── routers/             # 🔌 API Route Handlers
+    │   │   ├── home.py          # 🏠 GET /  and  GET /home
+    │   │   ├── recommend.py     # 🎬 POST /similarity  and  POST /recommend
+    │   │   ├── sentiment.py     # 🧠 POST /analyze_sentiment
+    │   │   └── discovery.py     # 🔥 POST /mood, /time_picks, /category
+    │   │
+    │   ├── services/            # 🤖 Business Logic Layer
+    │   │   ├── ml_engine.py     # 📊 Cosine Similarity recommendation engine
+    │   │   ├── sentiment_engine.py  # 🧠 Hybrid NLP sentiment classifier
+    │   │   └── theme_extractor.py   # ✨ AI semantic theme extraction
+    │   │
+    │   └── utils/
+    │       └── helpers.py       # 🛠️ Shared helpers (list parser, suggestions loader)
+    │
+    ├── models/
+    │   ├── nlp_model.pkl        # 📦 Pre-trained Multinomial Naive Bayes Classifier
+    │   └── tranform.pkl         # 📦 Pre-trained TF-IDF Vectorizer
+    │
+    ├── data/
+    │   └── main_data.csv        # 💾 Processed Movie Dataset (6,000+ titles)
+    │
+    ├── static/
+    │   ├── style.css            # 🎨 Glassmorphism & 3D Cinematic CSS
+    │   ├── recommend.js         # 🔁 AJAX Logic & TMDB API Integrations
+    │   ├── autocomplete.js      # 🔍 Search Bar Autocomplete
+    │   └── images/
+    │       ├── logo.png         # 🎬 CINEFLIX AI Logo
+    │       └── hero_3d.jpg      # 🖼️ Hero Section Background
+    │
+    └── templates/
+        ├── home.html            # 🏠 Main Dashboard (Mood / Time / Category Picks)
+        └── recommend.html       # 🎬 Recommendation Result Page (Cast + Reviews + NLP Tags)
 ```
 
 ---

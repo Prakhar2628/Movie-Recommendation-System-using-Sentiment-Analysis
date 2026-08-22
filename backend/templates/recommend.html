@@ -1,0 +1,188 @@
+{% for name, details in cast_details.items() if not cast_details.hidden %}
+<div class="modal fade" id="cast-{{details[0]}}" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ name }}</h5>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body" style="display:flex;gap:20px;align-items:flex-start;">
+        <img src="{{ details[1] }}" alt="{{ name }}"
+             style="width:160px;height:220px;object-fit:cover;border-radius:10px;flex-shrink:0;"
+             onerror="this.src='https://via.placeholder.com/160x220/120924/8c52ff?text=👤'">
+        <div>
+          <p style="margin-bottom:6px;"><strong style="color:#b388ff">Birthday:</strong>
+            <span style="color:#9e95b0">{{ details[2] }}</span></p>
+          <p style="margin-bottom:6px;"><strong style="color:#b388ff">Place of Birth:</strong>
+            <span style="color:#9e95b0">{{ details[3] }}</span></p>
+          <p style="margin-top:10px;margin-bottom:4px;"><strong style="color:#b388ff">Biography:</strong></p>
+          <p style="color:#9e95b0;font-size:0.85rem;line-height:1.65;
+                    max-height:200px;overflow-y:auto;padding-right:4px;">{{ details[4] }}</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- ── Hero: Poster + Movie Details + Trailer Button ───────────────── -->
+<div class="rec-hero">
+  <div class="rec-poster-wrap">
+    <img class="rec-poster" src="{{ poster }}" alt="{{ title }} poster"
+         onerror="this.src='https://via.placeholder.com/200x300/120924/8c52ff?text=🎬'">
+  </div>
+
+  <div class="rec-details">
+    <h1 class="rec-title">{{ title }}</h1>
+
+    {% if genres %}
+    <div class="rec-tags">
+      {% for g in genres.split(', ') %}
+      <span class="tag">{{ g }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="rec-meta">
+      <div class="rating-badge">
+        <i class="fa fa-star"></i> {{ vote_average }}/10
+        <span style="font-size:0.72rem;font-weight:400;color:#9e95b0">&nbsp;({{ vote_count }} votes)</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Release</span>
+        <span class="meta-value">{{ release_date }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Runtime</span>
+        <span class="meta-value">{{ runtime }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Status</span>
+        <span class="meta-value">
+          {% if status == 'Released' %}<span style="color:#4ade80">● Released</span>
+          {% else %}<span style="color:#f59e0b">● {{ status }}</span>{% endif %}
+        </span>
+      </div>
+    </div>
+
+    <p class="rec-overview">{{ overview }}</p>
+
+    {% if nlp_themes %}
+    <div style="margin-top:14px;">
+      <span style="font-size:0.72rem;color:var(--purple-300);font-weight:700;letter-spacing:1px;display:block;margin-bottom:6px;">
+        <i class="fa fa-brain"></i> AI SEMANTIC NLP THEMES:
+      </span>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        {% for theme in nlp_themes %}
+        <span class="tag" style="background:rgba(217,70,239,0.12);border-color:rgba(217,70,239,0.3);color:var(--accent);">{{ theme }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Interactive Trailer Button -->
+    <div style="margin-top:20px;">
+      <button class="search-btn" style="position:static;transform:none;" onclick="watchTrailer('{{ title|escape }}')">
+        <i class="fa fa-play"></i> &nbsp;Watch Trailer on YouTube
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Top Cast ─────────────────────────────────────────────────────── -->
+{% if casts|length > 0 %}
+<div class="cast-section">
+  <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;">
+    <h2 class="section-title"><span class="dot"></span> Top Cast</h2>
+    <span style="color:#9e95b0;font-size:0.78rem;">Click for biography</span>
+  </div>
+  <div class="cast-row">
+    {% for name, details in casts.items() if not casts.hidden %}
+    <div class="cast-card" data-toggle="modal" data-target="#cast-{{details[0]}}">
+      <img src="{{ details[2] }}" alt="{{ name }}"
+           onerror="this.src='https://via.placeholder.com/120x160/120924/8c52ff?text=👤'">
+      <div class="cast-name">{{ name|title }}</div>
+      <div class="cast-char">{{ details[1]|title }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ── User Reviews + AI Sentiment ──────────────────────────────────── -->
+<div class="reviews-section">
+  <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <h2 class="section-title"><span class="dot"></span> AI Sentiment Analysis &amp; User Reviews</h2>
+    <span class="hero-badge" style="margin:0;padding:4px 12px;font-size:0.75rem;"><i class="fa fa-robot"></i> NLP Classifier Active</span>
+  </div>
+
+  {% if reviews %}
+  {% set total = reviews|length %}
+  {% set pos = namespace(count=0) %}
+  {% for r, s in reviews.items() %}
+    {% if s == 'Good' %}
+      {% set pos.count = pos.count + 1 %}
+    {% endif %}
+  {% endfor %}
+  {% set pct = (pos.count / total * 100)|round|int if total > 0 else 80 %}
+
+  <!-- Sentiment Summary Gauge Bar -->
+  <div class="sentiment-summary-bar">
+    <div class="sentiment-summary-text">
+      <span style="color:#34d399;font-weight:700;"><i class="fa fa-smile"></i> {{ pct }}% POSITIVE Audience Rating</span>
+      <span style="color:#f87171;font-weight:700;">{{ 100 - pct }}% NEGATIVE</span>
+    </div>
+    <div class="sentiment-progress-track">
+      <div class="sentiment-progress-fill" style="width: {{ pct }}%;"></div>
+    </div>
+  </div>
+
+  <!-- Clean Vertical Comment Section List -->
+  <div class="comment-list">
+    {% set reviewer_names = ["Alex", "Ram", "Sarah", "John", "Jessica", "David", "Emily", "Michael", "Sophia", "Daniel", "Emma", "Olivia", "Liam", "Noah", "James", "Priya", "Rahul", "Anya", "Vikram", "Karan"] %}
+    {% for review, status in reviews.items() if not reviews.hidden %}
+    <div class="comment-item">
+      <div class="comment-avatar">
+        <i class="fa fa-user-circle"></i>
+      </div>
+      <div class="comment-body-wrap">
+        <div class="comment-meta">
+          <span class="comment-author">{{ reviewer_names[loop.index0 % reviewer_names|length] }}</span>
+          {% if status == 'Good' %}
+          <span class="verdict-pill verdict-positive">POSITIVE</span>
+          {% else %}
+          <span class="verdict-pill verdict-negative">NEGATIVE</span>
+          {% endif %}
+        </div>
+        <p class="comment-text">{{ review }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- ── Recommended Movies ────────────────────────────────────────────── -->
+{% if movie_cards|length > 0 %}
+<div class="section">
+  <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;">
+    <h2 class="section-title"><span class="dot"></span> Recommended For You</h2>
+    <span style="color:#9e95b0;font-size:0.78rem;">Click any movie to explore</span>
+  </div>
+  <div class="movie-row">
+    {% for poster_url, rec_title in movie_cards.items() %}
+    <div class="movie-card" title="{{ rec_title }}" onclick="recommendcard(this)">
+      <img src="{{ poster_url }}" alt="{{ rec_title }}"
+           onerror="this.src='https://via.placeholder.com/160x240/120924/8c52ff?text=🎬'">
+      <div class="movie-card-overlay">
+        <button class="play-btn"><i class="fa fa-play"></i></button>
+        <div class="card-title">{{ rec_title|capitalize }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
