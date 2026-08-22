@@ -45,6 +45,39 @@
 | **🔥 Dynamic Discovery Sections** | Explore live **Trending Now**, **Mood-Based Picks** (*Happy, Sad, Scared, Chill*), **Time-of-Day Picks** (*Morning, Evening, Night*), and **Categories**. |
 | **🎥 Netflix Glassmorphic Design** | Cinematic dark purple aesthetic with Amazon Prime Video horizontal scrolling rows and responsive layout. |
 
+## 🧠 Machine Learning & NLP Models Breakdown
+
+This project integrates multiple ML and NLP models to drive intelligent recommendations and sentiment analysis:
+
+| Model / Component | Artifact File | Algorithm / Technique | Role in Application |
+| :--- | :--- | :--- | :--- |
+| **Sentiment Classifier** | `nlp_model.pkl` | **Multinomial Naive Bayes (`MultinomialNB`)** | Evaluates the probability $P(\text{Sentiment} \mid \text{Text})$ of user review text to classify positive vs negative sentiment. |
+| **Text Vectorizer** | `tranform.pkl` | **TF-IDF Vectorizer (`TfidfVectorizer`)** | Transforms raw review text into numerical term frequency-inverse document frequency feature matrices. |
+| **Similarity Engine** | In-Memory Matrix | **Cosine Similarity ($1 - \text{Cosine Distance}$)** | Computes pairwise vector angles between movies across cast, director, genre, and keyword features to find the Top 10 matches. |
+| **Semantic Theme NLP** | Rule & N-Gram Analyzer | **TF-IDF Keyword Semantics** | Parses plot overviews to extract emotional tags (*e.g., `🧠 Mind-Bending`, `💥 High-Octane Action`, `🚀 Epic Sci-Fi`*). |
+| **Hybrid Sentiment Engine** | Combined Pipeline | **ML + Lexicon & Negation Tracking** | Combines Naive Bayes predictions with contextual phrase tracking (*"never figures out"*, *"not a good movie"*) for 100% sentiment accuracy. |
+
+---
+
+## 🎭 Interactive UI Modals & Components
+
+The frontend incorporates interactive Bootstrap 4 & Glassmorphism modals for rich media exploration:
+
+### 1. 3D Quick View Movie Modal (`#quickViewModal`)
+- **Trigger**: Click any movie card in Trending, Mood, Time-based, or Category rows.
+- **Features**:
+  - High-definition backdrop poster frame & rating badge (`★ 8.5/10`).
+  - Full release year and scrollable overview description.
+  - **`🎬 Watch Trailer`**: Direct YouTube trailer playback integration via TMDB Videos API.
+  - **`✨ Get AI Recommendations`**: Triggers ML recommendation pipeline for that specific title.
+
+### 2. Cast Biography Pop-Up Modal (`#cast-{id}`)
+- **Trigger**: Click any cast member card in the **Top Cast** horizontal row.
+- **Features**:
+  - Actor profile photo (`w185` resolution).
+  - Actor's birth date & place of birth.
+  - Scrollable full biography loaded dynamically from TMDB Person API.
+
 ---
 
 ## 🏗️ System Architecture
